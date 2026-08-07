@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://c2rb1uxbjfgdo"]
+
+[ext_resource type="Script" uid="uid://cadglfy1axqmg" path="res://player.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://b5yncbgpu2vgx" path="res://spring_arm_camera.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://dwvpa2su1lbu2" path="res://camera_follow.gd" id="3_h2yge"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
+vertex_color_use_as_albedo = true
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_7dm0k"]
+
+[sub_resource type="VoxelGeneratorNoise2D" id="VoxelGeneratorNoise2D_ig7tw"]
+noise = SubResource("FastNoiseLite_7dm0k")
+channel = 0
+
+[sub_resource type="VoxelBlockyModelEmpty" id="VoxelBlockyModelEmpty_7dm0k"]
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_ig7tw"]
+
+[sub_resource type="VoxelBlockyLibrary" id="VoxelBlockyLibrary_7dm0k"]
+models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw")])
+
+[sub_resource type="VoxelMesherBlocky" id="VoxelMesherBlocky_ig7tw"]
+library = SubResource("VoxelBlockyLibrary_7dm0k")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7dm0k"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ig7tw"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_h2yge"]
+radius = 0.3
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_h2yge"]
+
+[sub_resource type="Sky" id="Sky_1bvp3"]
+sky_material = SubResource("ProceduralSkyMaterial_h2yge")
+
+[sub_resource type="Environment" id="Environment_lquwl"]
+background_mode = 2
+sky = SubResource("Sky_1bvp3")
+
+[node name="Node3D" type="Node3D" unique_id=235188175]
+
+[node name="VoxelTerrain" type="VoxelTerrain" parent="." unique_id=987136406]
+material_override = SubResource("StandardMaterial3D_7dm0k")
+generator = SubResource("VoxelGeneratorNoise2D_ig7tw")
+mesher = SubResource("VoxelMesherBlocky_ig7tw")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1124854156]
+transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 0, 0)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1349077764 node_paths=PackedStringArray("camera_pivot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 60, 0)
+collision_layer = 2
+script = ExtResource("1_ig7tw")
+camera_pivot = NodePath("SpringArmPivot")
+
+[node name="CollisionShapePlayer" type="CollisionShape3D" parent="Player" unique_id=894750939]
+shape = SubResource("CapsuleShape3D_7dm0k")
+
+[node name="MeshInstancePlayer" type="MeshInstance3D" parent="Player" unique_id=263565096]
+mesh = SubResource("CapsuleMesh_ig7tw")
+
+[node name="SpringArmPivot" type="Node3D" parent="Player" unique_id=1304157707 node_paths=PackedStringArray("player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62015915, 0)
+script = ExtResource("2_0xm2m")
+player = NodePath("..")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Player/SpringArmPivot" unique_id=984005525]
+shape = SubResource("SphereShape3D_h2yge")
+spring_length = 4.0
+
+[node name="SpringPosition" type="Node3D" parent="Player/SpringArmPivot/SpringArm3D" unique_id=205851068]
+
+[node name="Camera3D" type="Camera3D" parent="Player/SpringArmPivot" unique_id=456476904 node_paths=PackedStringArray("target")]
+script = ExtResource("3_h2yge")
+target = NodePath("../SpringArm3D/SpringPosition")
+
+[node name="VoxelViewer" type="VoxelViewer" parent="Player/SpringArmPivot/Camera3D" unique_id=213969743]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1538864928]
+environment = SubResource("Environment_lquwl")
