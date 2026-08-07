@@ -1,24 +1,47 @@
 [gd_scene format=3 uid="uid://c2rb1uxbjfgdo"]
 
+[ext_resource type="Script" uid="uid://pgd3t08qkvn0" path="res://world_generator.gd" id="1_1bvp3"]
 [ext_resource type="Script" uid="uid://cadglfy1axqmg" path="res://player.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://b5yncbgpu2vgx" path="res://spring_arm_camera.gd" id="2_0xm2m"]
+[ext_resource type="Material" uid="uid://cnhyl3v2wwws3" path="res://voxel_solid.tres" id="2_lquwl"]
 [ext_resource type="Script" uid="uid://dwvpa2su1lbu2" path="res://camera_follow.gd" id="3_h2yge"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7dm0k"]
-vertex_color_use_as_albedo = true
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_7dm0k"]
-
-[sub_resource type="VoxelGeneratorNoise2D" id="VoxelGeneratorNoise2D_ig7tw"]
-noise = SubResource("FastNoiseLite_7dm0k")
-channel = 0
+[sub_resource type="VoxelGeneratorScript" id="VoxelGeneratorScript_lquwl"]
+script = ExtResource("1_1bvp3")
+river_width = null
+river_depth = null
+river_mountain_fade = null
+metadata/_custom_type_script = "uid://pgd3t08qkvn0"
 
 [sub_resource type="VoxelBlockyModelEmpty" id="VoxelBlockyModelEmpty_7dm0k"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 0.5882353)
+metallic = 0.3
+roughness = 0.1
+
 [sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_ig7tw"]
+color = Color(0.16862746, 0.38039216, 1, 1)
+transparency_index = 2
+lod_skirts_enabled = false
+material_override_0 = SubResource("StandardMaterial3D_1bvp3")
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_h2yge"]
+color = Color(0.18662637, 0.45425546, 0.22872436, 1)
+material_override_0 = ExtResource("2_lquwl")
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_1bvp3"]
+color = Color(0.30103758, 0.33688164, 0.35015097, 1)
+material_override_0 = ExtResource("2_lquwl")
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_lquwl"]
+color = Color(0.24076903, 0.15014127, 0.042635657, 1)
+material_override_0 = ExtResource("2_lquwl")
 
 [sub_resource type="VoxelBlockyLibrary" id="VoxelBlockyLibrary_7dm0k"]
-models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw")])
+models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw"), SubResource("VoxelBlockyModelCube_h2yge"), SubResource("VoxelBlockyModelCube_1bvp3"), SubResource("VoxelBlockyModelCube_lquwl")])
 
 [sub_resource type="VoxelMesherBlocky" id="VoxelMesherBlocky_ig7tw"]
 library = SubResource("VoxelBlockyLibrary_7dm0k")
@@ -42,8 +65,8 @@ sky = SubResource("Sky_1bvp3")
 [node name="Node3D" type="Node3D" unique_id=235188175]
 
 [node name="VoxelTerrain" type="VoxelTerrain" parent="." unique_id=987136406]
-material_override = SubResource("StandardMaterial3D_7dm0k")
-generator = SubResource("VoxelGeneratorNoise2D_ig7tw")
+run_stream_in_editor = false
+generator = SubResource("VoxelGeneratorScript_lquwl")
 mesher = SubResource("VoxelMesherBlocky_ig7tw")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1124854156]
