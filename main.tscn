@@ -4,13 +4,42 @@
 [ext_resource type="Script" uid="uid://cadglfy1axqmg" path="res://player.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://b5yncbgpu2vgx" path="res://spring_arm_camera.gd" id="2_0xm2m"]
 [ext_resource type="Material" uid="uid://cnhyl3v2wwws3" path="res://voxel_solid.tres" id="2_lquwl"]
+[ext_resource type="ArrayMesh" uid="uid://bbp87npw5ww2" path="res://meshes/plants/gras_kurz.res" id="3_272bh"]
 [ext_resource type="Script" uid="uid://dwvpa2su1lbu2" path="res://camera_follow.gd" id="3_h2yge"]
+[ext_resource type="Material" uid="uid://6j3kcm7bx4kt" path="res://materials/plants/gras_kurz.tres" id="3_yaehf"]
+[ext_resource type="Script" uid="uid://bt34mihacrl87" path="res://character_visual.gd" id="4_7mycd"]
+[ext_resource type="ArrayMesh" uid="uid://bbjjj4utc6vab" path="res://meshes/plants/gras_mittel.res" id="4_ycdy4"]
+[ext_resource type="Material" uid="uid://b1iew41wibagv" path="res://materials/plants/gras_mittel.tres" id="5_074og"]
+[ext_resource type="ArrayMesh" uid="uid://b7n0t14kh0kn0" path="res://meshes/plants/gras_hoch.res" id="5_w48qg"]
+[ext_resource type="ArrayMesh" uid="uid://dd0kagumepl4x" path="res://meshes/plants/gras_trocken.res" id="6_vivmo"]
+[ext_resource type="ArrayMesh" uid="uid://dvt1jj7bisy33" path="res://meshes/plants/blume_rot.res" id="7_2cqfq"]
+[ext_resource type="Material" uid="uid://mthr6260y37x" path="res://materials/plants/gras_hoch.tres" id="7_cegan"]
+[ext_resource type="ArrayMesh" uid="uid://uxhs823hffvd" path="res://meshes/plants/blume_gelb.res" id="8_yaehf"]
+[ext_resource type="ArrayMesh" uid="uid://b206kl6bt5gta" path="res://meshes/plants/blume_lila.res" id="9_074og"]
+[ext_resource type="Material" uid="uid://cc8qrcastrm7s" path="res://materials/plants/gras_trocken.tres" id="9_82xsv"]
+[ext_resource type="Material" uid="uid://cbbvpdgw1iplc" path="res://materials/plants/gras_busch.tres" id="11_getpj"]
+[ext_resource type="ArrayMesh" uid="uid://b5w6xqv8a1di2" path="res://meshes/plants/gras_busch.res" id="12_ryguw"]
+[ext_resource type="Material" uid="uid://bce7vo1abqgec" path="res://materials/plants/stiel.tres" id="13_d13ii"]
+[ext_resource type="Material" uid="uid://dicnudu3wslts" path="res://materials/plants/bluete_rot.tres" id="14_1u8w0"]
+[ext_resource type="Material" uid="uid://bain65xj362if" path="res://materials/plants/bluete_gelb.tres" id="16_0odxb"]
+[ext_resource type="Material" uid="uid://c6m4b5nc768mw" path="res://materials/plants/bluete_lila.tres" id="18_d13ii"]
+[ext_resource type="Script" uid="uid://tg23l8s7ds2u" path="res://cloud_layer.gd" id="24_1u8w0"]
+[ext_resource type="Script" uid="uid://bfypdq84qrpww" path="res://combat.gd" id="24_lswn8"]
+[ext_resource type="Script" uid="uid://daevkxptcsamj" path="res://underwater.gd" id="25_0odxb"]
+[ext_resource type="Script" uid="uid://b324ug47gk004" path="res://inventar.gd" id="25_kq58d"]
+[ext_resource type="Shader" uid="uid://te3y261ckjb5" path="res://materials/himmel.gdshader" id="26_htxhm"]
+[ext_resource type="Script" uid="uid://c2l2ln8fyi71b" path="res://ausruestung.gd" id="26_ok6jj"]
+[ext_resource type="Script" uid="uid://b7v6jybgomq88" path="res://trainingspuppe.gd" id="27_a6jrf"]
+[ext_resource type="Resource" uid="uid://wk0oavyrd2f8" path="res://daten/waffen/faust.tres" id="27_b1qrp"]
+[ext_resource type="Script" uid="uid://ci7httpyfvmty" path="res://angriffs_animator.gd" id="27_facbu"]
+[ext_resource type="Script" uid="uid://brmg8fhjlnsv7" path="res://hud.gd" id="27_xuqvo"]
+[ext_resource type="Script" uid="uid://b2vkrhtoibv6l" path="res://inventar_ui.gd" id="29_seu75"]
+[ext_resource type="Script" uid="uid://d3v12anftyet" path="res://karte.gd" id="31_jq2sk"]
+[ext_resource type="Script" uid="uid://c3khj4uqvo0ld" path="res://deko_layer.gd" id="31_seu75"]
+[ext_resource type="Script" uid="uid://cdqj1yhl4rx5u" path="res://pause_menue.gd" id="34_4k2k6"]
 
-[sub_resource type="VoxelGeneratorScript" id="VoxelGeneratorScript_lquwl"]
+[sub_resource type="VoxelGeneratorScript" id="VoxelGeneratorScript_0odxb"]
 script = ExtResource("1_1bvp3")
-river_width = null
-river_depth = null
-river_mountain_fade = null
 metadata/_custom_type_script = "uid://pgd3t08qkvn0"
 
 [sub_resource type="VoxelBlockyModelEmpty" id="VoxelBlockyModelEmpty_7dm0k"]
@@ -26,7 +55,9 @@ roughness = 0.1
 color = Color(0.16862746, 0.38039216, 1, 1)
 transparency_index = 2
 lod_skirts_enabled = false
+collision_aabbs = Array[AABB]([])
 material_override_0 = SubResource("StandardMaterial3D_1bvp3")
+collision_enabled_0 = false
 
 [sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_h2yge"]
 color = Color(0.18662637, 0.45425546, 0.22872436, 1)
@@ -40,52 +71,271 @@ material_override_0 = ExtResource("2_lquwl")
 color = Color(0.24076903, 0.15014127, 0.042635657, 1)
 material_override_0 = ExtResource("2_lquwl")
 
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_cegan"]
+mesh = ExtResource("3_272bh")
+transparency_index = 1
+culls_neighbors = false
+material_override_0 = ExtResource("3_yaehf")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_82xsv"]
+mesh = ExtResource("4_ycdy4")
+material_override_0 = ExtResource("5_074og")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_getpj"]
+mesh = ExtResource("5_w48qg")
+material_override_0 = ExtResource("7_cegan")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_ryguw"]
+mesh = ExtResource("6_vivmo")
+material_override_0 = ExtResource("9_82xsv")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_d13ii"]
+mesh = ExtResource("12_ryguw")
+material_override_0 = ExtResource("11_getpj")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_1u8w0"]
+mesh = ExtResource("7_2cqfq")
+material_override_0 = ExtResource("13_d13ii")
+material_override_1 = ExtResource("14_1u8w0")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_0odxb"]
+mesh = ExtResource("8_yaehf")
+material_override_0 = ExtResource("13_d13ii")
+material_override_1 = ExtResource("16_0odxb")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_lswn8"]
+mesh = ExtResource("9_074og")
+transparency_index = 1
+culls_neighbors = false
+material_override_0 = ExtResource("13_d13ii")
+material_override_1 = ExtResource("18_d13ii")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0odxb"]
+albedo_color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_0odxb"]
+color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+material_override_0 = SubResource("StandardMaterial3D_0odxb")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lswn8"]
+albedo_color = Color(0.6117647, 0.54509807, 0.4627451, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_lswn8"]
+color = Color(0.6117647, 0.54509807, 0.4627451, 1)
+material_override_0 = SubResource("StandardMaterial3D_lswn8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a6jrf"]
+albedo_color = Color(0.2901961, 0.20784314, 0.14117648, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_a6jrf"]
+color = Color(0.2901961, 0.20784314, 0.14117648, 1)
+material_override_0 = SubResource("StandardMaterial3D_a6jrf")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xuqvo"]
+albedo_color = Color(0.24705882, 0.47843137, 0.18039216, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_xuqvo"]
+color = Color(0.24705882, 0.47843137, 0.18039216, 1)
+material_override_0 = SubResource("StandardMaterial3D_xuqvo")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qsp4k"]
+albedo_color = Color(0.4509804, 0.7019608, 0.25490198, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_qsp4k"]
+color = Color(0.4509804, 0.7019608, 0.25490198, 1)
+material_override_0 = SubResource("StandardMaterial3D_qsp4k")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kq58d"]
+albedo_color = Color(0.16470589, 0.3372549, 0.21960784, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_kq58d"]
+color = Color(0.16470589, 0.3372549, 0.21960784, 1)
+material_override_0 = SubResource("StandardMaterial3D_kq58d")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_seu75"]
+albedo_color = Color(0.47843137, 0.47843137, 0.47058824, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_seu75"]
+color = Color(0.47843137, 0.47843137, 0.47058824, 1)
+material_override_0 = SubResource("StandardMaterial3D_seu75")
+
 [sub_resource type="VoxelBlockyLibrary" id="VoxelBlockyLibrary_7dm0k"]
-models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw"), SubResource("VoxelBlockyModelCube_h2yge"), SubResource("VoxelBlockyModelCube_1bvp3"), SubResource("VoxelBlockyModelCube_lquwl")])
+models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw"), SubResource("VoxelBlockyModelCube_h2yge"), SubResource("VoxelBlockyModelCube_1bvp3"), SubResource("VoxelBlockyModelCube_lquwl"), SubResource("VoxelBlockyModelMesh_cegan"), SubResource("VoxelBlockyModelMesh_82xsv"), SubResource("VoxelBlockyModelMesh_getpj"), SubResource("VoxelBlockyModelMesh_ryguw"), SubResource("VoxelBlockyModelMesh_d13ii"), SubResource("VoxelBlockyModelMesh_1u8w0"), SubResource("VoxelBlockyModelMesh_0odxb"), SubResource("VoxelBlockyModelMesh_lswn8"), SubResource("VoxelBlockyModelCube_0odxb"), SubResource("VoxelBlockyModelCube_lswn8"), SubResource("VoxelBlockyModelCube_a6jrf"), SubResource("VoxelBlockyModelCube_xuqvo"), SubResource("VoxelBlockyModelCube_qsp4k"), SubResource("VoxelBlockyModelCube_kq58d"), SubResource("VoxelBlockyModelCube_seu75")])
 
 [sub_resource type="VoxelMesherBlocky" id="VoxelMesherBlocky_ig7tw"]
 library = SubResource("VoxelBlockyLibrary_7dm0k")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7dm0k"]
+radius = 0.33
+height = 1.7
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ig7tw"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_qsp4k"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_kq58d"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_seu75"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_htxhm"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_jq2sk"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_4k2k6"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0rl1p"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_h2yge"]
 radius = 0.3
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_h2yge"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jq2sk"]
+shader = ExtResource("26_htxhm")
+shader_parameter/farbe_zenit = Color(0.2, 0.45, 0.82, 1)
+shader_parameter/farbe_horizont = Color(0.72, 0.86, 0.96, 1)
+shader_parameter/farbe_boden = Color(0.38, 0.42, 0.4, 1)
+shader_parameter/baender = 8
+shader_parameter/band_wellen = 0.55
+shader_parameter/wellen_frequenz = 3.0
+shader_parameter/horizont_schaerfe = 1.8
+shader_parameter/boden_breite = 3.0
+shader_parameter/sonne_zeigen = true
+shader_parameter/sonne_folgt_licht = false
+shader_parameter/sonne_umkehren = false
+shader_parameter/sonnen_richtung = Vector3(0.45, 0.5, 0.74)
+shader_parameter/sonnen_farbe = Color(1, 0.97, 0.86, 1)
+shader_parameter/sonnen_groesse = 0.055
+shader_parameter/sonnen_rand = 0.012
+shader_parameter/schein_farbe = Color(1, 0.9, 0.68, 1)
+shader_parameter/schein_weite = 0.55
+shader_parameter/schein_staerke = 0.35
 
-[sub_resource type="Sky" id="Sky_1bvp3"]
-sky_material = SubResource("ProceduralSkyMaterial_h2yge")
+[sub_resource type="Sky" id="Sky_4k2k6"]
+sky_material = SubResource("ShaderMaterial_jq2sk")
 
 [sub_resource type="Environment" id="Environment_lquwl"]
 background_mode = 2
-sky = SubResource("Sky_1bvp3")
+sky = SubResource("Sky_4k2k6")
+ambient_light_source = 3
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.72156864, 0.85882354, 0.9607843, 1)
+fog_sun_scatter = 0.1
+fog_density = 1.0
+fog_sky_affect = 0.0
+fog_depth_begin = 110.0
+fog_depth_end = 195.0
+adjustment_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_xuqvo"]
+size = Vector3(0.8, 1.8, 0.8)
 
 [node name="Node3D" type="Node3D" unique_id=235188175]
 
 [node name="VoxelTerrain" type="VoxelTerrain" parent="." unique_id=987136406]
+max_view_distance = 200
 run_stream_in_editor = false
-generator = SubResource("VoxelGeneratorScript_lquwl")
+generator = SubResource("VoxelGeneratorScript_0odxb")
 mesher = SubResource("VoxelMesherBlocky_ig7tw")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1124854156]
 transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_split_1 = 0.15
+directional_shadow_split_2 = 0.35
+directional_shadow_split_3 = 0.7
+directional_shadow_fade_start = 0.95
+directional_shadow_max_distance = 900.0
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=1349077764 node_paths=PackedStringArray("camera_pivot")]
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1349077764 node_paths=PackedStringArray("terrain", "camera_pivot")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 60, 0)
 collision_layer = 2
 script = ExtResource("1_ig7tw")
+walk_speed = 4.2
+sprint_speed = 6.4
+sneak_speed = 1.8
+jump_velocity = 7.0
+stufen_hoehe = 1.0
+terrain = NodePath("../VoxelTerrain")
+wade_speed = 2.6
+swim_speed = 3.4
 camera_pivot = NodePath("SpringArmPivot")
 
 [node name="CollisionShapePlayer" type="CollisionShape3D" parent="Player" unique_id=894750939]
 shape = SubResource("CapsuleShape3D_7dm0k")
 
 [node name="MeshInstancePlayer" type="MeshInstance3D" parent="Player" unique_id=263565096]
+visible = false
 mesh = SubResource("CapsuleMesh_ig7tw")
 
+[node name="Visual" type="Node3D" parent="Player" unique_id=1282422307]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, 0)
+script = ExtResource("4_7mycd")
+torso_unten_groesse = Vector3(0.54, 0.44, 0.34)
+torso_oben_groesse = Vector3(0.6, 0.44, 0.36)
+kopf_groesse = Vector3(0.52, 0.5, 0.49)
+hand_groesse = Vector3(0.22, 0.28, 0.28)
+fuss_groesse = Vector3(0.25, 0.2, 0.33)
+hand_abstand = 0.4
+hand_hoehe = 0.22
+schritt_frequenz = 3.4
+referenz_tempo = 4.2
+
+[node name="Neigung" type="Node3D" parent="Player/Visual" unique_id=533098219]
+
+[node name="Huefte" type="Node3D" parent="Player/Visual/Neigung" unique_id=1477821416]
+
+[node name="TorsoUnten" type="MeshInstance3D" parent="Player/Visual/Neigung/Huefte" unique_id=606678868]
+mesh = SubResource("BoxMesh_qsp4k")
+
+[node name="Brust" type="Node3D" parent="Player/Visual/Neigung/Huefte" unique_id=1086200369]
+
+[node name="TorsoOben" type="MeshInstance3D" parent="Player/Visual/Neigung/Huefte/Brust" unique_id=1972567178]
+mesh = SubResource("BoxMesh_kq58d")
+
+[node name="Kopf" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust" unique_id=592346691]
+
+[node name="KopfMesh" type="MeshInstance3D" parent="Player/Visual/Neigung/Huefte/Brust/Kopf" unique_id=721264235]
+mesh = SubResource("BoxMesh_seu75")
+
+[node name="HandLinks" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust" unique_id=888756669]
+
+[node name="HandLinksMesh" type="MeshInstance3D" parent="Player/Visual/Neigung/Huefte/Brust/HandLinks" unique_id=1820460749]
+mesh = SubResource("BoxMesh_htxhm")
+
+[node name="HalterLinks" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust/HandLinks" unique_id=920081352]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7, 0)
+
+[node name="HandRechts" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust" unique_id=399378409]
+
+[node name="HandRechtsMesh" type="MeshInstance3D" parent="Player/Visual/Neigung/Huefte/Brust/HandRechts" unique_id=1116649841]
+mesh = SubResource("BoxMesh_jq2sk")
+
+[node name="HalterRechts" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust/HandRechts" unique_id=179680560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7, 0)
+
+[node name="FussLinks" type="Node3D" parent="Player/Visual/Neigung" unique_id=960569270]
+
+[node name="FussLinksMesh" type="MeshInstance3D" parent="Player/Visual/Neigung/FussLinks" unique_id=122951534]
+mesh = SubResource("BoxMesh_4k2k6")
+
+[node name="FussRechts" type="Node3D" parent="Player/Visual/Neigung" unique_id=1270524175]
+
+[node name="FussRechtsMesh" type="MeshInstance3D" parent="Player/Visual/Neigung/FussRechts" unique_id=503171707]
+mesh = SubResource("BoxMesh_0rl1p")
+
 [node name="SpringArmPivot" type="Node3D" parent="Player" unique_id=1304157707 node_paths=PackedStringArray("player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.62015915, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 script = ExtResource("2_0xm2m")
 player = NodePath("..")
 
@@ -95,11 +345,66 @@ spring_length = 4.0
 
 [node name="SpringPosition" type="Node3D" parent="Player/SpringArmPivot/SpringArm3D" unique_id=205851068]
 
-[node name="Camera3D" type="Camera3D" parent="Player/SpringArmPivot" unique_id=456476904 node_paths=PackedStringArray("target")]
+[node name="Camera3D" type="Camera3D" parent="Player/SpringArmPivot" unique_id=456476904 node_paths=PackedStringArray("target", "player")]
 script = ExtResource("3_h2yge")
 target = NodePath("../SpringArm3D/SpringPosition")
+player = NodePath("../..")
 
 [node name="VoxelViewer" type="VoxelViewer" parent="Player/SpringArmPivot/Camera3D" unique_id=213969743]
 
+[node name="Combat" type="Node" parent="Player" unique_id=920050934]
+script = ExtResource("24_lswn8")
+reichweite = 2.1
+hoehen_toleranz = 1.8
+
+[node name="Inventar" type="Node" parent="Player" unique_id=700597166]
+script = ExtResource("25_kq58d")
+
+[node name="Ausruestung" type="Node" parent="Player" unique_id=1412743329]
+script = ExtResource("26_ok6jj")
+faust_daten = ExtResource("27_b1qrp")
+
+[node name="AngriffsAnimator" type="Node" parent="Player" unique_id=2027654774]
+script = ExtResource("27_facbu")
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1538864928]
 environment = SubResource("Environment_lquwl")
+
+[node name="CloudLayer" type="Node3D" parent="." unique_id=721125394 node_paths=PackedStringArray("folge_ziel")]
+script = ExtResource("24_1u8w0")
+folge_ziel = NodePath("../Player")
+
+[node name="Underwater" type="Node" parent="." unique_id=1966309501 node_paths=PackedStringArray("camera", "terrain", "world_env")]
+script = ExtResource("25_0odxb")
+camera = NodePath("../Player/SpringArmPivot/Camera3D")
+terrain = NodePath("../VoxelTerrain")
+world_env = NodePath("../WorldEnvironment")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1685553628]
+script = ExtResource("27_xuqvo")
+
+[node name="InventarUI" type="Node" parent="." unique_id=144307302]
+script = ExtResource("29_seu75")
+
+[node name="Karte" type="Node" parent="." unique_id=1728454381 node_paths=PackedStringArray("terrain", "ziel")]
+script = ExtResource("31_jq2sk")
+terrain = NodePath("../VoxelTerrain")
+ziel = NodePath("../Player")
+
+[node name="Trainingspuppe" type="Node3D" parent="." unique_id=619982427]
+script = ExtResource("27_a6jrf")
+angriffs_reichweite = 2.5
+
+[node name="Mesh" type="MeshInstance3D" parent="Trainingspuppe" unique_id=1311980038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_xuqvo")
+
+[node name="DekoLayer" type="Node3D" parent="." unique_id=1304062330 node_paths=PackedStringArray("terrain", "ziel")]
+script = ExtResource("31_seu75")
+terrain = NodePath("../VoxelTerrain")
+ziel = NodePath("../Player")
+radius = 80.0
+uebergang = 20.0
+
+[node name="PauseMenue" type="CanvasLayer" parent="." unique_id=1435169384]
+script = ExtResource("34_4k2k6")

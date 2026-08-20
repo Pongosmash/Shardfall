@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cc8qrcastrm7s"]
+
+[ext_resource type="Shader" uid="uid://ddnmtgqdy1imq" path="res://materials/plants/plant_wind.gdshader" id="1_ucf66"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_ucf66")
+shader_parameter/farbe_unten = Color(0.38, 0.32, 0.13, 1)
+shader_parameter/farbe_oben = Color(0.82, 0.74, 0.38, 1)
+shader_parameter/wind_staerke = 0.12
+shader_parameter/wind_tempo = 1.4
+shader_parameter/wind_richtung = Vector2(1, 0.35)
+shader_parameter/variation = 0.16
+shader_parameter/pixel = 0.1
+shader_parameter/farb_stufen = 4
