@@ -3,7 +3,19 @@ extends Node
 
 # Kampfkomponente des Spielers.
 # Hängt als Kindknoten "Combat" unter dem Player.
-# Kümmert sich um Leben, Ausdauer, Fausthiebe, Blocken und perfektes Blocken.
+# Kümmert sich um Leben, Ausdauer, Angriffe, Blocken und perfektes Blocken.
+#
+# WAFFEN:
+# Findet beim Start selbst den Geschwisterknoten "Ausruestung". Ist er da,
+# kommen Timing, Schaden, Reichweite, Trefferwinkel, Kombolänge und
+# Blockwerte aus den WaffenDaten der ausgerüsteten Waffe. Fehlt er, greifen
+# die Exportwerte unten – das alte Faustverhalten läuft dann unverändert.
+#
+# Combat ist die einzige Quelle der Wahrheit für Timing und Schaden.
+# Die Optik liegt vollständig in character_visual.gd und liest von hier
+# 'angriff_fortschritt', 'hand_links', aktiver_stil() und schlag_marken().
+# Ein zweiter Timer für die Animation würde vom Kampf-Timing abdriften und
+# Treffer und sichtbaren Schlag entkoppeln.
 
 signal getroffen(menge: float)             # Schaden ist durchgekommen
 signal geblockt(menge: float)              # normal geblockt
@@ -23,11 +35,11 @@ signal deckung_gebrochen()                 # Ausdauer reichte nicht
 @export var erschoepft_schwelle: float = 0.25     # ab wieviel Anteil wieder handlungsfähig
 
 @export_group("Kosten")
-@export var kosten_angriff: float = 12.0
-@export var kosten_block: float = 20.0            # pro geblocktem Treffer
+@export var kosten_angriff: float = 12.0          # Rückfall ohne Waffe
+@export var kosten_block: float = 20.0            # Rückfall ohne Waffe
 @export var kosten_sprint: float = 10.0           # pro Sekunde, nur im Kampf
 
-@export_group("Faustangriff")
+@export_group("Angriff (Rückfallwerte ohne Ausrüstung)")
 @export var reichweite: float = 2.4
 @export var trefferwinkel: float = 110.0          # Kegel vor dem Spieler (Grad)
 @export var hoehen_toleranz: float = 2.0          # max. Höhenunterschied zum Ziel
@@ -38,7 +50,15 @@ signal deckung_gebrochen()                 # Ausdauer reichte nicht
 @export var erholung: float = 0.20                # Sekunden danach
 @export var max_kombo: int = 3
 
-@export_group("Blocken")
+@export_group("Waffen")
+## Der letzte Schlag der Kombo trifft härter. Faktor auf den Waffenschaden.
+@export var finisher_faktor: float = 1.75
+## Trefferkegel je nach Angriffsstil: Stiche treffen schmal, Schwünge breit.
+@export var winkel_je_stil: bool = true
+## Name des Geschwisterknotens, der beim Start gesucht wird.
+@export var name_ausruestung: String = "Ausruestung"
+
+@export_group("Blocken (Rückfallwerte ohne Ausrüstung)")
 @export var block_reduktion: float = 0.75         # 0.75 = 75 % weniger Schaden
 @export var block_winkel: float = 140.0           # nur Treffer von vorne
 @export var block_tempo: float = 0.45             # Tempofaktor beim Blocken
@@ -48,7 +68,7 @@ signal deckung_gebrochen()                 # Ausdauer reichte nicht
 @export var parry_fenster: float = 0.25           # Sekunden nach dem Drücken
 @export var parry_ausdauer_bonus: float = 15.0    # Belohnung fürs Timing
 @export var schwachstelle_dauer: float = 2.0      # wie lange der Gegner offen ist
-@export var crit_faktor: float = 2.5              # Schadensfaktor auf offene Ziele
+@export var crit_faktor: float = 2.5              # Rückfall ohne Waffe
 
 enum Phase { KEINE, AUSHOLEN, TREFFER, ERHOLUNG }
 
@@ -61,8 +81,11 @@ var ist_erschoepft: bool = false
 var ist_betaeubt: bool = false
 var ist_tot: bool = false
 var kombo_index: int = 0
-var hand_links: bool = false                      # welche Faust gerade schlägt
+var hand_links: bool = false                      # welche Hand gerade schlägt
 var angriff_fortschritt: float = 0.0              # 0..1 über den ganzen Schlag
+
+# Komponente (kann null bleiben – dann greifen die Rückfallwerte)
+var ausruestung: Ausruestung = null
 
 var _player = null                                # bewusst ohne Typ (Zyklus vermeiden)
 var _phase: int = Phase.KEINE
@@ -75,6 +98,18 @@ var _tot_timer: float = 0.0
 var _block_seit: float = 999.0                    # Sekunden seit Blockbeginn
 var _offen_timer: float = 0.0                     # eigene Schwachstelle
 var _getroffen: Array = []
+
+# Werte des LAUFENDEN Schlages. Beim Start eingefroren, damit ein
+# Waffenwechsel mitten im Schlag die Phasen nicht zerreißt.
+var _waffe: WaffenDaten = null
+var _dauer_ausholen: float = 0.12
+var _dauer_treffer: float = 0.06
+var _dauer_erholung: float = 0.20
+var _reichweite_aktuell: float = 2.4
+var _winkel_aktuell: float = 110.0
+var _schaden_aktuell: float = 9.0
+var _crit_aktuell: float = 2.5
+var _kombo_max: int = 3
 
 
 func _ready() -> void:
@@ -89,8 +124,30 @@ func _ready() -> void:
 	if not InputMap.has_action("block"):
 		push_error("Combat: Eingabeaktion 'block' fehlt (Projekteinstellungen -> Eingabezuordnung)")
 
+	_komponenten_suchen()
+
 	leben = max_leben
 	ausdauer = max_ausdauer
+
+
+# Sucht die Ausrüstung unter dem Player. owned = false, damit auch Knoten in
+# instanzierten Unterszenen gefunden werden.
+func _komponenten_suchen() -> void:
+	var gefunden: Node = _player.find_child(name_ausruestung, true, false)
+	if gefunden is Ausruestung:
+		ausruestung = gefunden as Ausruestung
+		ausruestung.waffe_gewechselt.connect(_auf_waffenwechsel)
+	else:
+		push_warning("Combat: Keine Ausrüstung ('%s') gefunden – Faust-Rückfallwerte aktiv."
+				% name_ausruestung)
+
+
+# Waffenwechsel bricht die laufende Kombo ab: Ein Zweihänder soll nicht
+# mitten in einer Faustkombo weiterzählen.
+func _auf_waffenwechsel(_daten: WaffenDaten) -> void:
+	if _phase != Phase.KEINE:
+		_beende_schlag()
+	kombo_index = 0
 
 
 func _process(delta: float) -> void:
@@ -131,6 +188,43 @@ func sprint_kosten(delta: float) -> void:
 	_verbrauche(kosten_sprint * delta, false)
 
 
+## Die Waffe in der Schlaghand. Null, wenn keine Ausrüstung vorhanden ist.
+func aktive_waffe() -> WaffenDaten:
+	if ausruestung == null:
+		return null
+	return ausruestung.aktive_waffe()
+
+
+## Womit gerade geblockt wird: Schild, Waffe oder null (kein Block möglich).
+func aktive_blockwaffe() -> WaffenDaten:
+	if ausruestung == null:
+		return null
+	return ausruestung.block_waffe()
+
+
+## Angriffsstil des laufenden Schlages. Fällt auf FAUST zurück.
+## character_visual.gd wählt darüber die Schlagpose.
+func aktiver_stil() -> int:
+	if _waffe != null:
+		return _waffe.stil
+	return WaffenDaten.Stil.FAUST
+
+
+## Die zwei Marken im normierten Schlagverlauf (0..1):
+##   x = Ende des Ausholens / Beginn des Trefferfensters
+##   y = Ende des Trefferfensters / Beginn des Zurückholens
+## Damit kann die Optik ihre Kurve exakt auf das Timing der Waffe legen,
+## statt feste Werte zu raten.
+func schlag_marken() -> Vector2:
+	var gesamt: float = _dauer_ausholen + _dauer_treffer + _dauer_erholung
+	if gesamt <= 0.0:
+		return Vector2(0.30, 0.48)
+	return Vector2(
+		_dauer_ausholen / gesamt,
+		(_dauer_ausholen + _dauer_treffer) / gesamt
+	)
+
+
 # ---------------------------------------------------------------- Schwachstelle
 
 # Wird aufgerufen, wenn ein Gegner den Angriff des Spielers perfekt blockt.
@@ -161,7 +255,13 @@ func _eingabe(delta: float) -> void:
 	var moeglich: bool = not _player.is_swimming and not ist_betaeubt
 
 	# --- Blocken (halten) ---
+	# Ohne Ausrüstung immer erlaubt. Mit Ausrüstung nur, wenn Schild oder
+	# Waffe blockfähig sind – ein Zweihänder mit kann_blocken = false
+	# schaltet die Deckung damit komplett ab.
+	var block_erlaubt: bool = ausruestung == null or aktive_blockwaffe() != null
+
 	var will_blocken: bool = moeglich \
+			and block_erlaubt \
 			and Input.is_action_pressed("block") \
 			and _phase == Phase.KEINE \
 			and not ist_erschoepft
@@ -185,23 +285,83 @@ func _eingabe(delta: float) -> void:
 
 	if _phase == Phase.KEINE:
 		_starte_schlag(0)
-	elif _phase == Phase.ERHOLUNG and kombo_index + 1 < max_kombo:
+	elif _phase == Phase.ERHOLUNG and kombo_index + 1 < _kombo_max:
 		_kombo_puffer = true
 
 
 # ---------------------------------------------------------------- Angriff
 
 func _starte_schlag(index: int) -> void:
-	if ist_erschoepft or ausdauer < kosten_angriff:
+	var waffe: WaffenDaten = aktive_waffe()
+	var kosten: float = waffe.ausdauer_kosten if waffe != null else kosten_angriff
+
+	if ist_erschoepft or ausdauer < kosten:
 		return
 
+	_waffe = waffe
+	_werte_uebernehmen(waffe)
+
 	kombo_index = index
-	hand_links = not hand_links        # jeder Schlag wechselt die Faust
+
+	# Nur Fäuste wechseln die Hand. Mit Waffe schlägt immer dieselbe Seite,
+	# sonst würde das Schwert von einer leeren Hand geschwungen.
+	if ausruestung == null or ausruestung.haende_wechseln_erlaubt():
+		hand_links = not hand_links
+	else:
+		hand_links = false
+
 	_phase = Phase.AUSHOLEN
-	_phase_timer = ausholen
+	_phase_timer = _dauer_ausholen
 	ist_am_angreifen = true
 	_getroffen.clear()
-	_verbrauche(kosten_angriff)
+	_verbrauche(kosten)
+
+
+# Friert die Werte des Schlages ein. Ohne Waffe bleiben es die Exportwerte,
+# das alte Faustverhalten also unverändert.
+func _werte_uebernehmen(waffe: WaffenDaten) -> void:
+	if waffe == null:
+		_dauer_ausholen = ausholen
+		_dauer_treffer = treffer_dauer
+		_dauer_erholung = erholung
+		_reichweite_aktuell = reichweite
+		_winkel_aktuell = trefferwinkel
+		_schaden_aktuell = schaden
+		_crit_aktuell = crit_faktor
+		_kombo_max = max_kombo
+		return
+
+	waffe.gepruefte_werte()
+
+	# Phasenlängen direkt aus dem Waffen-Timing ableiten. Dadurch laufen
+	# Pose und Trefferfenster garantiert synchron.
+	var d: float = waffe.angriff_dauer
+	_dauer_ausholen = d * waffe.treffer_start
+	_dauer_treffer = d * (waffe.treffer_ende - waffe.treffer_start)
+	_dauer_erholung = d * (1.0 - waffe.treffer_ende) + waffe.nachziehzeit
+
+	_reichweite_aktuell = waffe.reichweite
+	_winkel_aktuell = _stil_winkel(waffe.stil)
+	_schaden_aktuell = waffe.schaden
+	_crit_aktuell = waffe.kritisch_multiplikator
+	_kombo_max = maxi(waffe.kombo_schritte, 1)
+
+
+# Der Trefferkegel gehört zum Angriffsstil: Ein Stich erwischt genau das,
+# worauf man zielt, ein schwerer Schwung räumt die halbe Umgebung ab.
+func _stil_winkel(stil: int) -> float:
+	if not winkel_je_stil:
+		return trefferwinkel
+	match stil:
+		WaffenDaten.Stil.STICH:
+			return 60.0
+		WaffenDaten.Stil.HIEB:
+			return 130.0
+		WaffenDaten.Stil.SCHWUNG_SCHWER:
+			return 150.0
+		WaffenDaten.Stil.STANGE:
+			return 50.0
+	return trefferwinkel      # FAUST und alles Unbekannte
 
 
 func _angriff_update(delta: float) -> void:
@@ -215,15 +375,15 @@ func _angriff_update(delta: float) -> void:
 		Phase.AUSHOLEN:
 			if _phase_timer <= 0.0:
 				_phase = Phase.TREFFER
-				_phase_timer = treffer_dauer
+				_phase_timer = _dauer_treffer
 		Phase.TREFFER:
 			_treffer_pruefen()
 			if _phase_timer <= 0.0:
 				_phase = Phase.ERHOLUNG
-				_phase_timer = erholung
+				_phase_timer = _dauer_erholung
 		Phase.ERHOLUNG:
 			if _phase_timer <= 0.0:
-				if _kombo_puffer and kombo_index + 1 < max_kombo:
+				if _kombo_puffer and kombo_index + 1 < _kombo_max:
 					_kombo_puffer = false
 					_starte_schlag(kombo_index + 1)
 				else:
@@ -239,29 +399,31 @@ func _beende_schlag() -> void:
 	ist_am_angreifen = false
 	kombo_index = 0
 	angriff_fortschritt = 0.0
+	_waffe = null
 
 
 func _fortschritt() -> float:
-	var gesamt: float = ausholen + treffer_dauer + erholung
+	var gesamt: float = _dauer_ausholen + _dauer_treffer + _dauer_erholung
 	if gesamt <= 0.0:
 		return 0.0
 	var v: float = 0.0
 	match _phase:
 		Phase.AUSHOLEN:
-			v = ausholen - _phase_timer
+			v = _dauer_ausholen - _phase_timer
 		Phase.TREFFER:
-			v = ausholen + (treffer_dauer - _phase_timer)
+			v = _dauer_ausholen + (_dauer_treffer - _phase_timer)
 		Phase.ERHOLUNG:
-			v = ausholen + treffer_dauer + (erholung - _phase_timer)
+			v = _dauer_ausholen + _dauer_treffer + (_dauer_erholung - _phase_timer)
 	return clampf(v / gesamt, 0.0, 1.0)
 
 
 func _treffer_pruefen() -> void:
 	var blick: Vector3 = Vector3.FORWARD.rotated(Vector3.UP, _blick_yaw())
-	var grenze: float = cos(deg_to_rad(trefferwinkel * 0.5))
-	var basis: float = schaden
-	if kombo_index >= max_kombo - 1:
-		basis = schaden_finisher
+	var grenze: float = cos(deg_to_rad(_winkel_aktuell * 0.5))
+
+	var basis: float = _schaden_aktuell
+	if kombo_index >= _kombo_max - 1:
+		basis = schaden_finisher if _waffe == null else _schaden_aktuell * finisher_faktor
 
 	for ziel in get_tree().get_nodes_in_group("damageable"):
 		if ziel == _player or ziel in _getroffen:
@@ -276,7 +438,7 @@ func _treffer_pruefen() -> void:
 			continue
 		zu_ziel.y = 0.0
 		var dist: float = zu_ziel.length()
-		if dist > reichweite:
+		if dist > _reichweite_aktuell:
 			continue
 		if dist > 0.01 and blick.dot(zu_ziel / dist) < grenze:
 			continue
@@ -288,7 +450,7 @@ func _treffer_pruefen() -> void:
 		var menge: float = basis
 		var kritisch: bool = ziel.has_method("ist_offen") and ziel.ist_offen()
 		if kritisch:
-			menge = basis * crit_faktor
+			menge = basis * _crit_aktuell
 
 		var richtung: Vector3 = blick if dist <= 0.01 else zu_ziel / dist
 		ziel.take_damage(menge, _player, richtung)
@@ -324,9 +486,13 @@ func schaden_erhalten(menge: float, angreifer: Node = null,
 	var final: float = menge
 
 	if ist_am_blocken and _von_vorne(richtung):
-		if ausdauer >= kosten_block:
-			_verbrauche(kosten_block)
-			final = menge * (1.0 - block_reduktion)
+		var schild: WaffenDaten = aktive_blockwaffe()
+		var kosten: float = schild.block_ausdauer_kosten if schild != null else kosten_block
+		var durchlass: float = schild.block_durchlass if schild != null else (1.0 - block_reduktion)
+
+		if ausdauer >= kosten:
+			_verbrauche(kosten)
+			final = menge * durchlass
 			geblockt.emit(final)
 		else:
 			# Deckung gebrochen

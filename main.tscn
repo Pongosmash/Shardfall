@@ -31,7 +31,6 @@
 [ext_resource type="Script" uid="uid://c2l2ln8fyi71b" path="res://ausruestung.gd" id="26_ok6jj"]
 [ext_resource type="Script" uid="uid://b7v6jybgomq88" path="res://trainingspuppe.gd" id="27_a6jrf"]
 [ext_resource type="Resource" uid="uid://wk0oavyrd2f8" path="res://daten/waffen/faust.tres" id="27_b1qrp"]
-[ext_resource type="Script" uid="uid://ci7httpyfvmty" path="res://angriffs_animator.gd" id="27_facbu"]
 [ext_resource type="Script" uid="uid://brmg8fhjlnsv7" path="res://hud.gd" id="27_xuqvo"]
 [ext_resource type="Script" uid="uid://b2vkrhtoibv6l" path="res://inventar_ui.gd" id="29_seu75"]
 [ext_resource type="Script" uid="uid://d3v12anftyet" path="res://karte.gd" id="31_jq2sk"]
@@ -314,7 +313,7 @@ mesh = SubResource("BoxMesh_seu75")
 mesh = SubResource("BoxMesh_htxhm")
 
 [node name="HalterLinks" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust/HandLinks" unique_id=920081352]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.12)
 
 [node name="HandRechts" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust" unique_id=399378409]
 
@@ -322,7 +321,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7, 0)
 mesh = SubResource("BoxMesh_jq2sk")
 
 [node name="HalterRechts" type="Node3D" parent="Player/Visual/Neigung/Huefte/Brust/HandRechts" unique_id=179680560]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.7, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.12)
 
 [node name="FussLinks" type="Node3D" parent="Player/Visual/Neigung" unique_id=960569270]
 
@@ -363,9 +362,6 @@ script = ExtResource("25_kq58d")
 [node name="Ausruestung" type="Node" parent="Player" unique_id=1412743329]
 script = ExtResource("26_ok6jj")
 faust_daten = ExtResource("27_b1qrp")
-
-[node name="AngriffsAnimator" type="Node" parent="Player" unique_id=2027654774]
-script = ExtResource("27_facbu")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1538864928]
 environment = SubResource("Environment_lquwl")

@@ -9,6 +9,14 @@ extends Node3D
 # - Körper legt sich in Kurven
 # - Laufzyklus läuft über die zurückgelegte STRECKE, nicht über die Zeit
 #
+# ANGRIFFE:
+# Weil es keine Arme gibt, ist ein Schlag hier eine VERSCHIEBUNG des
+# Handwürfels, keine Gelenkdrehung. Die Pose hängt am Angriffsstil der
+# ausgerüsteten Waffe (Combat.aktiver_stil()), und die Kurve wird auf das
+# Timing der Waffe gelegt (Combat.schlag_marken()). Ein Dolch stößt gerade
+# vor, ein Schwert zieht einen Bogen, ein Zweihänder holt beidhändig über
+# den Kopf aus.
+#
 # Erwarteter Knotenbaum (dieses Skript liegt auf dem Wurzelknoten "Visual"):
 #
 # Visual (Node3D)                    <- dieses Skript
@@ -20,9 +28,11 @@ extends Node3D
 #    │     ├─ Kopf (Node3D)
 #    │     │  └─ KopfMesh (MeshInstance3D)
 #    │     ├─ HandLinks (Node3D)
-#    │     │  └─ HandLinksMesh (MeshInstance3D)
+#    │     │  ├─ HandLinksMesh (MeshInstance3D)
+#    │     │  └─ HalterLinks (Node3D)      <- optional, für Waffenmodelle
 #    │     └─ HandRechts (Node3D)
-#    │        └─ HandRechtsMesh (MeshInstance3D)
+#    │        ├─ HandRechtsMesh (MeshInstance3D)
+#    │        └─ HalterRechts (Node3D)     <- optional, für Waffenmodelle
 #    ├─ FussLinks (Node3D)
 #    │  └─ FussLinksMesh (MeshInstance3D)
 #    └─ FussRechts (Node3D)
@@ -138,12 +148,16 @@ extends Node3D
 
 @export_group("Kampf")
 @export var kampf_tempo: float = 16.0
-@export var schlag_reichweite: float = 0.50    # wie weit die Faust vorschnellt
+## Grundreichweite eines Schlages. Die Stiltabelle rechnet in Vielfachen
+## davon – hier drehst du also die Wucht aller Angriffe gemeinsam.
+@export var schlag_reichweite: float = 0.50
 @export var schlag_rueckzug: float = 0.35      # Anteil des Ausholens nach hinten
 @export var schlag_drehung: float = 18.0       # Grad Rumpfdrehung beim Schlag
 @export var huefte_gegen: float = 0.35         # Hüfte dreht dagegen
 @export var block_hand_vorne: float = 0.26
 @export var block_hand_hoch: float = 0.16
+## Aus = alle Waffen schlagen wie Fäuste (zum Vergleichen beim Einstellen)
+@export var stil_posen_nutzen: bool = true
 
 var _player: Player = null
 
@@ -188,6 +202,77 @@ var _block_blend := 0.0                         # 0 = offen, 1 = Deckung
 var _angriff_blend := 0.0                       # 0 = kein Schlag, 1 = Schlag
 var _schlag_links := false
 var _ruhe_pos_y := 0.0
+
+# Werte des laufenden Schlages. Werden beim Start übernommen und bis zum
+# Ausblenden gehalten – Combat setzt seine Waffe am Schlagende auf null,
+# die Rückholbewegung braucht die Pose aber noch.
+var _schlag_stil: int = 0
+var _schlag_m1: float = 0.30
+var _schlag_m2: float = 0.48
+
+var _stil_posen: Dictionary = {}
+
+
+func _init() -> void:
+	# Verschiebungen in Vielfachen von 'schlag_reichweite', Drehungen in Grad.
+	# +X = vom Körper weg (rechte Hand), -Z = nach vorne, +Y = nach oben.
+	#
+	# 'ausholen' gilt für den negativen Teil der Kurve, 'treffer' für den
+	# positiven. Beide sind Versätze auf die Ruheposition der Hand, deshalb
+	# ist an der Nullstelle automatisch alles stetig – kein Ruckeln beim
+	# Übergang zwischen Ausholen und Zuschlagen.
+	_stil_posen = {
+		# Gerader Fausthieb, Hand zieht kurz zurück und schnellt zur Mitte.
+		WaffenDaten.Stil.FAUST: {
+			"beide_haende": false,
+			"ausholen_pos": Vector3(0.10, 0.06, 0.30),
+			"ausholen_rot": Vector3(14.0, 0.0, 0.0),
+			"treffer_pos": Vector3(-0.32, 0.06, -1.00),
+			"treffer_rot": Vector3(-20.0, 0.0, 0.0),
+			"torso_yaw": 1.0,
+			"torso_pitch": 0.0,
+		},
+		# Dolchstich: kaum seitlicher Versatz, dafür weiter nach vorne.
+		WaffenDaten.Stil.STICH: {
+			"beide_haende": false,
+			"ausholen_pos": Vector3(0.06, 0.02, 0.38),
+			"ausholen_rot": Vector3(8.0, 0.0, 0.0),
+			"treffer_pos": Vector3(-0.24, 0.02, -1.28),
+			"treffer_rot": Vector3(-12.0, 0.0, 0.0),
+			"torso_yaw": 1.1,
+			"torso_pitch": 0.0,
+		},
+		# Schwerthieb: holt seitlich und hoch aus, zieht quer durch.
+		WaffenDaten.Stil.HIEB: {
+			"beide_haende": false,
+			"ausholen_pos": Vector3(0.46, 0.24, 0.20),
+			"ausholen_rot": Vector3(0.0, -18.0, -58.0),
+			"treffer_pos": Vector3(-0.62, -0.06, -0.86),
+			"treffer_rot": Vector3(0.0, 24.0, 42.0),
+			"torso_yaw": 1.45,
+			"torso_pitch": 0.0,
+		},
+		# Zweihänder: beide Hände über den Kopf und von oben durch.
+		WaffenDaten.Stil.SCHWUNG_SCHWER: {
+			"beide_haende": true,
+			"ausholen_pos": Vector3(-0.30, 0.72, 0.34),
+			"ausholen_rot": Vector3(-64.0, 0.0, 0.0),
+			"treffer_pos": Vector3(-0.30, -0.34, -0.94),
+			"treffer_rot": Vector3(38.0, 0.0, 0.0),
+			"torso_yaw": 0.4,
+			"torso_pitch": 1.2,
+		},
+		# Stangenwaffe: beidhändiger Stoß, kaum Rumpfdrehung.
+		WaffenDaten.Stil.STANGE: {
+			"beide_haende": true,
+			"ausholen_pos": Vector3(-0.22, 0.04, 0.44),
+			"ausholen_rot": Vector3(6.0, 0.0, 0.0),
+			"treffer_pos": Vector3(-0.22, 0.0, -1.16),
+			"treffer_rot": Vector3(-10.0, 0.0, 0.0),
+			"torso_yaw": 0.6,
+			"torso_pitch": 0.0,
+		},
+	}
 
 
 func _ready() -> void:
@@ -413,23 +498,45 @@ func _process(delta: float) -> void:
 	_block_blend = lerpf(_block_blend, 1.0 if blockt else 0.0, kw)
 
 	# Der Schlag blendet hart ein (damit er knackig wirkt) und weich aus.
+	# Stil und Marken werden dabei mitgenommen: Combat setzt seine Waffe am
+	# Schlagende auf null, das Zurückholen braucht die Pose aber noch.
 	if kampf != null and kampf.ist_am_angreifen:
 		_angriff_blend = 1.0
 		_schlag_links = kampf.hand_links
+		if stil_posen_nutzen:
+			_schlag_stil = kampf.aktiver_stil()
+			var marken: Vector2 = kampf.schlag_marken()
+			_schlag_m1 = marken.x
+			_schlag_m2 = marken.y
+		else:
+			_schlag_stil = WaffenDaten.Stil.FAUST
+			_schlag_m1 = 0.30
+			_schlag_m2 = 0.48
 	else:
 		_angriff_blend = lerpf(_angriff_blend, 0.0, kw)
 
 	var kurve: float = 0.0
 	if _angriff_blend > 0.001 and kampf != null:
-		kurve = _schlag_kurve(kampf.angriff_fortschritt) * _angriff_blend
+		kurve = _schlag_kurve(kampf.angriff_fortschritt, _schlag_m1, _schlag_m2) \
+				* _angriff_blend
+
+	var pose: Dictionary = _stil_posen.get(_schlag_stil,
+			_stil_posen[WaffenDaten.Stil.FAUST])
 
 	# ------------------------------------------------------ Torso: zwei Teile
 	# Negative Werte um X beugen nach vorne (positiv würde nach hinten kippen).
 	var huefte_pitch: float = -deg_to_rad(duck_huefte) * _duck_blend
 	var brust_pitch: float = -deg_to_rad(duck_brust) * _duck_blend
 
+	# Beidhändige Stile drehen den Rumpf kaum, dafür kippt er nach vorne –
+	# ein Zweihänder wird aus dem Rücken geschlagen, nicht aus der Schulter.
+	brust_pitch += -deg_to_rad(schlag_drehung) * kurve * float(pose["torso_pitch"])
+
 	var seite: float = -1.0 if _schlag_links else 1.0
-	var schlag_yaw: float = deg_to_rad(schlag_drehung) * kurve * seite
+	if bool(pose["beide_haende"]):
+		seite = 1.0
+	var schlag_yaw: float = deg_to_rad(schlag_drehung) * kurve * seite \
+			* float(pose["torso_yaw"])
 	var lauf_yaw: float = sin(_phase) * deg_to_rad(lauf_torso_dreh) \
 			* _lauf_gewicht * clampf(tempo_n, 0.0, 1.0)
 
@@ -489,6 +596,9 @@ func _process(delta: float) -> void:
 	var ziel_r: Vector3 = _hand_ruhe_r \
 			+ Vector3(0.0, hoch, -sin(_phase) * h_amp - hand_wasser)
 
+	var dreh_l: Vector3 = Vector3.ZERO
+	var dreh_r: Vector3 = Vector3.ZERO
+
 	# Deckung legt sich darüber: beide Hände hoch und vor den Körper
 	if _block_blend > 0.001:
 		ziel_l = ziel_l.lerp(_hand_ruhe_l + Vector3(hand_abstand * 0.30,
@@ -496,35 +606,65 @@ func _process(delta: float) -> void:
 		ziel_r = ziel_r.lerp(_hand_ruhe_r + Vector3(-hand_abstand * 0.30,
 				block_hand_hoch, -block_hand_vorne), _block_blend)
 
-	# Schlag hat Vorrang, die Fäuste wechseln sich über kampf.hand_links ab
+	# Schlag hat Vorrang. Die Pose kommt aus der Stiltabelle und ist ein
+	# Versatz auf die Ruhelage – bei kurve = 0 also exakt null, damit der
+	# Übergang zwischen Ausholen und Zuschlagen stetig bleibt.
 	if absf(kurve) > 0.001:
-		var stoss := Vector3(0.0, 0.03 * kurve, -schlag_reichweite * kurve)
-		var mitte := hand_abstand * 0.45 * maxf(kurve, 0.0)
-		if _schlag_links:
-			ziel_l += stoss + Vector3(mitte, 0.0, 0.0)
-			_hand_l.rotation.x = -maxf(kurve, 0.0) * 0.35
-			_hand_r.rotation.x = 0.0
+		var pos_o: Vector3
+		var rot_o: Vector3
+		if kurve < 0.0:
+			var a: float = clampf(-kurve / maxf(schlag_rueckzug, 0.001), 0.0, 1.0)
+			pos_o = (pose["ausholen_pos"] as Vector3) * schlag_reichweite * a
+			rot_o = (pose["ausholen_rot"] as Vector3) * a
 		else:
-			ziel_r += stoss + Vector3(-mitte, 0.0, 0.0)
-			_hand_r.rotation.x = -maxf(kurve, 0.0) * 0.35
-			_hand_l.rotation.x = 0.0
-	else:
-		_hand_l.rotation.x = 0.0
-		_hand_r.rotation.x = 0.0
+			pos_o = (pose["treffer_pos"] as Vector3) * schlag_reichweite * kurve
+			rot_o = (pose["treffer_rot"] as Vector3) * kurve
+
+		if bool(pose["beide_haende"]):
+			ziel_r += pos_o
+			ziel_l += _spiegel(pos_o)
+			dreh_r = _grad(rot_o)
+			dreh_l = _grad(_spiegel_dreh(rot_o))
+		elif _schlag_links:
+			ziel_l += _spiegel(pos_o)
+			dreh_l = _grad(_spiegel_dreh(rot_o))
+		else:
+			ziel_r += pos_o
+			dreh_r = _grad(rot_o)
 
 	_hand_l.position = ziel_l
 	_hand_r.position = ziel_r
+	_hand_l.rotation = dreh_l
+	_hand_r.rotation = dreh_r
 
 
 # Schlagkurve über den gesamten Schlag: 0 = Beginn, 1 = Ende.
 # Rückgabe: negativ = ausholen, 1.0 = volle Streckung.
-# Der Treffer landet bei rund 0.32 – genau im schnellen Teil der Bewegung.
-func _schlag_kurve(f: float) -> float:
-	if f < 0.30:
-		return lerpf(0.0, -schlag_rueckzug, f / 0.30)
-	elif f < 0.48:
-		return lerpf(-schlag_rueckzug, 1.0, (f - 0.30) / 0.18)
-	return lerpf(1.0, 0.12, (f - 0.48) / 0.52)
+#
+# m1 und m2 kommen aus Combat.schlag_marken() und liegen genau auf Anfang und
+# Ende des Trefferfensters der Waffe. Dadurch landet der sichtbare Treffer
+# immer dort, wo auch der Schaden entsteht – egal wie eine Waffe getimt ist.
+func _schlag_kurve(f: float, m1: float, m2: float) -> float:
+	if f < m1:
+		return lerpf(0.0, -schlag_rueckzug, f / maxf(m1, 0.001))
+	elif f < m2:
+		return lerpf(-schlag_rueckzug, 1.0, (f - m1) / maxf(m2 - m1, 0.001))
+	return lerpf(1.0, 0.12, (f - m2) / maxf(1.0 - m2, 0.001))
+
+
+# Spiegelt einen Versatz auf die linke Körperseite: X ist die einzige Achse,
+# die sich umdreht, vor und hoch bleiben vor und hoch.
+func _spiegel(v: Vector3) -> Vector3:
+	return Vector3(-v.x, v.y, v.z)
+
+
+# Bei Drehungen kehren sich Gieren und Rollen um, Nicken nicht.
+func _spiegel_dreh(v: Vector3) -> Vector3:
+	return Vector3(v.x, -v.y, -v.z)
+
+
+func _grad(v: Vector3) -> Vector3:
+	return Vector3(deg_to_rad(v.x), deg_to_rad(v.y), deg_to_rad(v.z))
 
 
 func _setze_fuss(knoten: Node3D, ruhe: Vector3, phase: float, amp: float,

@@ -155,13 +155,17 @@ func nebenhand() -> WaffenDaten:
 
 ## True, wenn die Kombo die Haende abwechseln darf (nur bei Faeusten -
 ## bei Waffen schlaegt immer dieselbe Seite).
+##
+## Zweite Bedingung 'not hat_modell()' als Absicherung: Wer eine Faust-
+## Ressource anlegt und 'griff' auf dem Standardwert EINHAND stehen laesst,
+## bekaeme sonst lauter rechte Schlaege, ohne dass sichtbar waere warum.
 func haende_wechseln_erlaubt() -> bool:
 	var w: WaffenDaten = aktive_waffe()
 	if w == null:
 		return true
 	if w.ist_zweihaendig():
 		return false
-	return w.griff == WaffenDaten.Griff.LEER
+	return w.griff == WaffenDaten.Griff.LEER or not w.hat_modell()
 
 
 ## Blockwaffe: Schild in der Nebenhand, sonst die aktive Waffe.

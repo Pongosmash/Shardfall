@@ -14,11 +14,22 @@ class_name Karte
 # Größenordnungen billiger als eine zweite Kamera auf die echte Welt und
 # funktioniert auch für Gebiete, die gar nicht geladen sind.
 #
+# ERKUNDUNG:
+# Eine Kachel wird gezeichnet, wenn sie im Set der ENTDECKTEN Kacheln steht.
+# Entdeckt wird alles, was der Spieler im Umkreis von 'entdeck_radius'
+# passiert hat. Dieses Set überlebt Sitzungen (user://karte_entdeckt.dat).
+#
+# Wichtig ist die Trennung zweier Begriffe:
+#   entdeckt = dauerhaftes Wissen, wächst nur, wird gespeichert
+#   gebaut   = die Geometrie im Speicher, wird nach Budget freigegeben
+# Freigegebene Kacheln verlieren das Wissen NICHT, sie werden bei Bedarf aus
+# dem Noise neu aufgebaut. Genau deshalb war die Karte vorher scheinbar
+# vergesslich: es gab nur "gebaut", und das hing am Umkreis des Spielers.
+#
 # Darstellung: Das Gelände wird in Höhenstufen terrassiert. Jede Zelle bekommt
 # eine waagerechte Deckfläche, zwischen unterschiedlich hohen Nachbarn stehen
 # senkrechte Wände. Erst dadurch entstehen die abgetreppten Kanten, die eine
-# Blockwelt-Karte ausmachen – eine glatt interpolierte Fläche sieht wie eine
-# Landkarte aus, nicht wie ein Diorama.
+# Blockwelt-Karte ausmachen.
 #
 # Es genügt ein einfacher Node in der Hauptszene.
 
@@ -26,10 +37,25 @@ class_name Karte
 @export var terrain: VoxelTerrain              # VoxelTerrain hier reinziehen
 @export var ziel: Node3D                       # Player hier reinziehen
 
+@export_group("Erkundung")
+## Fortschritt über Sitzungen hinweg behalten
+@export var erkundung_speichern: bool = true
+## Umkreis in Blöcken, den der Spieler beim Vorbeilaufen aufdeckt
+@export var entdeck_radius: float = 130.0
+@export var speicher_pfad: String = "user://karte_entdeckt.dat"
+## Sekunden zwischen zwei Schreibvorgängen (nur wenn sich etwas geändert hat)
+@export var speicher_intervall: float = 15.0
+## Kennung der Welt. Ändert sich der Seed, hier mit ändern – sonst passt der
+## alte Erkundungsstand nicht mehr zum neuen Gelände.
+@export var welt_kennung: String = "welt1"
+## Wieviele Kacheln höchstens gleichzeitig als Geometrie im Speicher liegen.
+## Darüber werden die entferntesten freigegeben (das Wissen bleibt).
+@export var max_kacheln: int = 900
+
 @export_group("Gelände")
 ## Sichtbarer Radius der Minikarte in Blöcken
 @export var mini_radius: float = 110.0
-## Maximaler Radius, der überhaupt aufgebaut und behalten wird
+## Maximaler Radius, der überhaupt aufgebaut wird
 @export var gross_radius: float = 380.0
 ## Kantenlänge einer Geländekachel in Blöcken
 @export var kachel_groesse: int = 64
@@ -40,8 +66,11 @@ class_name Karte
 @export var hoehen_stufe: float = 3.0
 ## Überhöhung der Höhenunterschiede – macht Hügel und Berge lesbar
 @export var hoehen_ueberhoehung: float = 1.7
-## Kacheln pro Bild. Höher = schnellerer Aufbau, aber ruckeliger.
+## Kacheln pro Bild im normalen Spiel. Höher = schnellerer Aufbau, aber ruckeliger.
 @export var kacheln_pro_frame: int = 3
+## Kacheln pro Bild bei geöffneter Karte. Darf deutlich höher sein, weil das
+## Spielgeschehen dahinter ohnehin steht.
+@export var kacheln_pro_frame_offen: int = 14
 @export var baeume_zeigen: bool = true
 @export var baum_groesse: float = 4.0
 
@@ -83,7 +112,9 @@ class_name Karte
 @export var farbe_baum_laub: Color = Color(0.16, 0.52, 0.20)
 @export var farbe_baum_tanne: Color = Color(0.10, 0.34, 0.24)
 @export var farbe_brett: Color = Color(0.30, 0.20, 0.12)
-@export var farbe_hintergrund: Color = Color(0.10, 0.30, 0.52)
+## Hintergrund = das Unerforschte. Dunkel halten, damit der Unterschied
+## zwischen erkundet und unbekannt sofort ins Auge fällt.
+@export var farbe_hintergrund: Color = Color(0.05, 0.06, 0.09)
 @export var farbe_spieler: Color = Color(1.0, 0.84, 0.24)
 ## Dunkle Umrandung – erst dadurch hebt sich der Pfeil von hellem Gelände ab
 @export var farbe_spieler_rand: Color = Color(0.12, 0.09, 0.03)
@@ -102,6 +133,10 @@ var _gross_kam: Camera3D
 var _welt: Node3D
 
 var _kacheln: Dictionary = {}                  # Vector2i -> { mesh, laub, tanne }
+var _entdeckt: Dictionary = {}                 # Vector2i -> true (dauerhaft)
+var _entdeckt_dreckig: bool = false
+var _speicher_timer: float = 0.0
+
 var _laub_mm: MultiMeshInstance3D
 var _tanne_mm: MultiMeshInstance3D
 var _brett: MeshInstance3D
@@ -146,10 +181,16 @@ func _ready() -> void:
 		return
 
 	_gross_zoom = gross_zoom_start
+	_lade_entdeckt()
 	_baue_viewports()
 	_baue_welt()
 	_baue_ui()
-	print("Karte bereit – große Karte mit M.")
+	print("Karte bereit – große Karte mit M. Entdeckte Kacheln: ", _entdeckt.size())
+
+
+func _exit_tree() -> void:
+	if _entdeckt_dreckig:
+		_speichere_entdeckt()
 
 
 func _baue_viewports() -> void:
@@ -340,16 +381,24 @@ func _tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3,
 
 # ---------------------------------------------------------------- Ablauf
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _gen == null:
 		return
 
 	var p := ziel.global_position
 	var hier := Vector2(p.x, p.z)
 
-	if hier.distance_to(_letzte_pruefung) > float(kachel_groesse) * 0.5:
-		_letzte_pruefung = hier
-		_plane_kacheln(hier)
+	# Aufdecken passiert immer um den SPIELER, unabhängig davon, wohin die
+	# große Karte gerade geschoben ist.
+	_entdecke_um(hier)
+	_speicher_update(delta)
+
+	# Geplant wird dagegen um den sichtbaren Ausschnitt: bei offener Karte
+	# also um das Kartenzentrum, damit Wegschieben neue Bereiche nachlädt.
+	var plan_zentrum: Vector2 = _gross_zentrum if offen else hier
+	if plan_zentrum.distance_to(_letzte_pruefung) > float(kachel_groesse) * 0.5:
+		_letzte_pruefung = plan_zentrum
+		_plane_kacheln(plan_zentrum)
 
 	_arbeite_warteschlange()
 
@@ -416,10 +465,153 @@ func _setze_pfeil(p: Vector3) -> void:
 	_spieler_marker.scale = Vector3.ONE * skala
 
 
+# ---------------------------------------------------------------- Erkundung
+
+# Markiert alle Kacheln als dauerhaft entdeckt, die der Spieler im Umkreis
+# von 'entdeck_radius' berührt. Wächst nur, schrumpft nie.
+func _entdecke_um(zentrum: Vector2) -> void:
+	var k: int = kachel_groesse
+	var n: int = int(ceil(entdeck_radius / float(k))) + 1
+	var mx: int = floori(zentrum.x / float(k))
+	var mz: int = floori(zentrum.y / float(k))
+	var neu: bool = false
+
+	for dz in range(-n, n + 1):
+		for dx in range(-n, n + 1):
+			var key := Vector2i(mx + dx, mz + dz)
+			if _entdeckt.has(key):
+				continue
+			if _kachel_abstand(key, zentrum) <= entdeck_radius:
+				_entdeckt[key] = true
+				_entdeckt_dreckig = true
+				neu = true
+
+	# Neu entdecktes Gebiet sofort einplanen, statt auf die nächste
+	# Bewegungsschwelle zu warten.
+	if neu:
+		_letzte_pruefung = Vector2(1e9, 1e9)
+
+
+# Kürzester Abstand von einem Punkt zum Rechteck einer Kachel.
+# Nicht der Abstand zur Kachelmitte: sonst gilt eine Kachel, auf der man
+# gerade steht, bei ungünstiger Lage als weiter weg als eine Nachbarkachel.
+func _kachel_abstand(key: Vector2i, punkt: Vector2) -> float:
+	var k := float(kachel_groesse)
+	var x0 := float(key.x) * k
+	var z0 := float(key.y) * k
+	var dx: float = maxf(maxf(x0 - punkt.x, 0.0), punkt.x - (x0 + k))
+	var dz: float = maxf(maxf(z0 - punkt.y, 0.0), punkt.y - (z0 + k))
+	return Vector2(dx, dz).length()
+
+
+func _speicher_update(delta: float) -> void:
+	if not erkundung_speichern:
+		return
+	_speicher_timer -= delta
+	if _speicher_timer > 0.0:
+		return
+	_speicher_timer = maxf(speicher_intervall, 1.0)
+	if _entdeckt_dreckig:
+		_speichere_entdeckt()
+
+
+func _speichere_entdeckt() -> void:
+	if not erkundung_speichern:
+		return
+
+	var f := FileAccess.open(speicher_pfad, FileAccess.WRITE)
+	if f == null:
+		push_warning("Karte: Erkundungsstand konnte nicht geschrieben werden (%s)."
+				% speicher_pfad)
+		return
+
+	# Als flaches Int-Array: zwei Einträge pro Kachel. Deutlich kompakter
+	# als ein Dictionary voller Vector2i, und schnell zu lesen.
+	var daten := PackedInt32Array()
+	daten.resize(_entdeckt.size() * 2)
+	var i: int = 0
+	for key in _entdeckt:
+		daten[i] = key.x
+		daten[i + 1] = key.y
+		i += 2
+
+	f.store_line(welt_kennung)
+	f.store_32(kachel_groesse)
+	f.store_var(daten)
+	f.close()
+	_entdeckt_dreckig = false
+
+
+func _lade_entdeckt() -> void:
+	if not erkundung_speichern:
+		return
+	if not FileAccess.file_exists(speicher_pfad):
+		return
+
+	var f := FileAccess.open(speicher_pfad, FileAccess.READ)
+	if f == null:
+		return
+
+	var kennung := f.get_line()
+	var raster := f.get_32()
+
+	# Bei anderem Seed oder anderem Kachelraster passt der alte Stand nicht
+	# mehr zum Gelände – dann lieber neu anfangen als falsch aufgedeckt.
+	if kennung != welt_kennung or raster != kachel_groesse:
+		f.close()
+		push_warning("Karte: Erkundungsstand passt nicht zur aktuellen Welt"
+				+ " (Kennung/Raster geändert) und wird verworfen.")
+		return
+
+	var daten = f.get_var()
+	f.close()
+	if not daten is PackedInt32Array:
+		return
+
+	var liste: PackedInt32Array = daten
+	var i: int = 0
+	while i + 1 < liste.size():
+		_entdeckt[Vector2i(liste[i], liste[i + 1])] = true
+		i += 2
+
+
+## Deckt die ganze Karte auf (Debug/Cheat).
+func alles_aufdecken(radius_bloecke: float = 2000.0) -> void:
+	var k: int = kachel_groesse
+	var n: int = int(ceil(radius_bloecke / float(k)))
+	var p := ziel.global_position
+	var mx: int = floori(p.x / float(k))
+	var mz: int = floori(p.z / float(k))
+	for dz in range(-n, n + 1):
+		for dx in range(-n, n + 1):
+			_entdeckt[Vector2i(mx + dx, mz + dz)] = true
+	_entdeckt_dreckig = true
+	_letzte_pruefung = Vector2(1e9, 1e9)
+
+
+## Löscht den Erkundungsfortschritt.
+func erkundung_zuruecksetzen() -> void:
+	_entdeckt.clear()
+	for key in _kacheln.keys():
+		_kacheln[key]["mesh"].queue_free()
+	_kacheln.clear()
+	_warteschlange.clear()
+	_baeume_dreckig = true
+	_entdeckt_dreckig = true
+	_letzte_pruefung = Vector2(1e9, 1e9)
+
+
 # ---------------------------------------------------------------- Kacheln
 
+# Wie weit um den Ausschnitt herum Geometrie gebaut wird.
+func _bau_reichweite() -> float:
+	if offen:
+		return minf(_gross_zoom * 0.9 + float(kachel_groesse), gross_radius)
+	return mini_radius
+
+
 func _plane_kacheln(zentrum: Vector2) -> void:
-	var reichweite: float = gross_radius if offen else mini_radius
+	var reichweite: float = _bau_reichweite()
 	var k: int = kachel_groesse
 	var n: int = int(ceil(reichweite / float(k))) + 1
 	var mx: int = floori(zentrum.x / float(k))
@@ -431,30 +623,50 @@ func _plane_kacheln(zentrum: Vector2) -> void:
 			var key := Vector2i(mx + dx, mz + dz)
 			if _kacheln.has(key):
 				continue
-			var mitte := Vector2((float(key.x) + 0.5) * float(k),
-					(float(key.y) + 0.5) * float(k))
-			if mitte.distance_to(zentrum) > reichweite + float(k):
+			# Der eine entscheidende Filter: Unentdecktes wird nicht gebaut.
+			if not _entdeckt.has(key):
 				continue
-			_warteschlange.append({"key": key, "d": mitte.distance_to(zentrum)})
+			var d: float = _kachel_abstand(key, zentrum)
+			if d > reichweite:
+				continue
+			_warteschlange.append({"key": key, "d": d})
 
 	# Nahe Kacheln zuerst – die sieht man als Erstes
 	_warteschlange.sort_custom(func(a, b): return a["d"] < b["d"])
 
-	# Weit entfernte Kacheln freigeben
-	var weg: Array = []
+	_gib_speicher_frei(zentrum, reichweite)
+
+
+# Freigegeben wird erst, wenn das Budget überschritten ist – und dann die
+# entferntesten zuerst. Das Wissen in _entdeckt bleibt davon unberührt, die
+# Kachel wird beim nächsten Besuch einfach neu aus dem Noise gebaut.
+func _gib_speicher_frei(zentrum: Vector2, reichweite: float) -> void:
+	if _kacheln.size() <= max_kacheln:
+		return
+
+	var kandidaten: Array = []
 	for key in _kacheln:
-		var mitte := Vector2((float(key.x) + 0.5) * float(k),
-				(float(key.y) + 0.5) * float(k))
-		if mitte.distance_to(zentrum) > gross_radius + float(k) * 2.0:
-			weg.append(key)
-	for key in weg:
+		var d: float = _kachel_abstand(key, zentrum)
+		if d <= reichweite:
+			continue                        # sichtbare Kacheln nie wegwerfen
+		kandidaten.append({"key": key, "d": d})
+
+	if kandidaten.is_empty():
+		return
+
+	kandidaten.sort_custom(func(a, b): return a["d"] > b["d"])
+
+	var zuviel: int = mini(_kacheln.size() - max_kacheln, kandidaten.size())
+	for i in zuviel:
+		var key: Vector2i = kandidaten[i]["key"]
 		_kacheln[key]["mesh"].queue_free()
 		_kacheln.erase(key)
 		_baeume_dreckig = true
 
 
 func _arbeite_warteschlange() -> void:
-	var anzahl: int = mini(kacheln_pro_frame, _warteschlange.size())
+	var budget: int = kacheln_pro_frame_offen if offen else kacheln_pro_frame
+	var anzahl: int = mini(maxi(budget, 1), _warteschlange.size())
 	for i in anzahl:
 		var eintrag = _warteschlange.pop_front()
 		if not _kacheln.has(eintrag["key"]):
@@ -875,7 +1087,7 @@ func oeffnen() -> void:
 	_gross_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_zentriere_auf_spieler()
-	_letzte_pruefung = Vector2(1e9, 1e9)         # Umkreis auf gross_radius erweitern
+	_letzte_pruefung = Vector2(1e9, 1e9)         # Umkreis sofort neu planen
 	_zeichne_liste()
 
 
@@ -884,12 +1096,16 @@ func schliessen() -> void:
 	_gross_wurzel.visible = false
 	_gross_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_zieht = false
+	_letzte_pruefung = Vector2(1e9, 1e9)         # zurück auf den Mini-Umkreis
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if _entdeckt_dreckig:
+		_speichere_entdeckt()
 
 
 func _zentriere_auf_spieler() -> void:
 	var p := ziel.global_position
 	_gross_zentrum = Vector2(p.x, p.z)
+	_letzte_pruefung = Vector2(1e9, 1e9)
 
 
 func _auf_karten_eingabe(event: InputEvent) -> void:
@@ -899,8 +1115,10 @@ func _auf_karten_eingabe(event: InputEvent) -> void:
 		var taste := event as InputEventMouseButton
 		if taste.button_index == MOUSE_BUTTON_WHEEL_UP and taste.pressed:
 			_gross_zoom = clampf(_gross_zoom * 0.85, gross_zoom_min, gross_zoom_max)
+			_letzte_pruefung = Vector2(1e9, 1e9)
 		elif taste.button_index == MOUSE_BUTTON_WHEEL_DOWN and taste.pressed:
 			_gross_zoom = clampf(_gross_zoom / 0.85, gross_zoom_min, gross_zoom_max)
+			_letzte_pruefung = Vector2(1e9, 1e9)
 		elif taste.button_index == MOUSE_BUTTON_LEFT:
 			if taste.pressed:
 				_zieht = true
