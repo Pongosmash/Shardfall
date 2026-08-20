@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://mthr6260y37x"]
 
-[ext_resource type="Shader" uid="uid://ddnmtgqdy1imq" path="res://materials/plants/plant_wind.gdshader" id="1_l1q6b"]
+[ext_resource type="Shader" uid="uid://ddnmtgqdy1imq" path="res://assets/materials/plants/plant_wind.gdshader" id="1_l1q6b"]
 
 [resource]
 render_priority = 0

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://wk0oavyrd2f8"]
 
-[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://waffen_daten.gd" id="1_g42g3"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="1_g42g3"]
 
 [resource]
 script = ExtResource("1_g42g3")

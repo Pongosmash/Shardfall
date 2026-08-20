@@ -6,7 +6,7 @@ class_name ItemKatalog
 #
 # Später legst du Items als Ressourcen im Editor an (Rechtsklick im
 # Dateisystem -> Neue Ressource -> ItemDaten) und lädst sie mit
-# load("res://items/eisenhelm.tres"). Der Rest des Systems bleibt gleich.
+# load("res://daten/items/eisenhelm.tres"). Der Rest des Systems bleibt gleich.
 
 static func _mach(id: String, anzeige: String, slot: int, selten: int,
 		farbe: Color, boni: Dictionary, beschreibung: String = "") -> ItemDaten:

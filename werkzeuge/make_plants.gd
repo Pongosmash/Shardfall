@@ -1,9 +1,9 @@
 @tool
 extends EditorScript
 
-const MESH_DIR    := "res://meshes/plants/"
-const MAT_DIR     := "res://materials/plants/"
-const SHADER_PATH := "res://materials/plants/plant_wind.gdshader"
+const MESH_DIR    := "res://assets/meshes/plants/"
+const MAT_DIR     := "res://assets/materials/plants/"
+const SHADER_PATH := "res://assets/materials/plants/plant_wind.gdshader"
 
 # Kantenlänge eines "Pixels" in Blockeinheiten (0.1 = 10 Pixel pro Block)
 const PIXEL := 0.1

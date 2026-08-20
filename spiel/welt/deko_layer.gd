@@ -19,8 +19,8 @@ class_name DekoLayer
 @export_group("Referenzen")
 @export var terrain: VoxelTerrain              # VoxelTerrain hier reinziehen
 @export var ziel: Node3D                       # Player hier reinziehen
-@export var mesh_verzeichnis: String = "res://meshes/plants/"
-@export var material_verzeichnis: String = "res://materials/plants/"
+@export var mesh_verzeichnis: String = "res://assets/meshes/plants/"
+@export var material_verzeichnis: String = "res://assets/materials/plants/"
 
 @export_group("Sichtbarkeit")
 ## Radius in Blöcken, in dem Deko dargestellt wird

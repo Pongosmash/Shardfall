@@ -6,7 +6,7 @@ extends Node
 ## und wendet sie auf AudioServer, DisplayServer, Engine und InputMap an.
 ##
 ## Registrierung: Projekt -> Projekteinstellungen -> Autoload
-##   Pfad: res://autoload/einstellungen.gd   Name: Einstellungen
+##   Pfad: res://spiel/autoload/einstellungen.gd   Name: Einstellungen
 ##
 ## Andere Skripte lesen einfach z.B. Einstellungen.maussensitivitaet
 ## oder verbinden sich mit den Signalen unten.
