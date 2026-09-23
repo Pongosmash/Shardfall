@@ -42,6 +42,8 @@ Trainingspuppe in der Ausgabe, läuft das Spiel. Die Fehler
 `keyboard_get_keycode_from_physical: Not supported by this display server`
 sind normal und treten nur kopflos auf – der Dummy-Displayserver hat keine
 Tastatur, und das Pausenmenü fragt beim Bau seiner Tastenzeilen danach.
+Zwei Warnungen "keine Ausruestung gefunden" stammen vom NPC, der noch ohne
+Ausrüstung kämpft.
 
 ---
 
@@ -69,26 +71,45 @@ Belegung änderbar unter Pausenmenü → Optionen → Steuerung.
 ## Aufbau
 
 ```
-szenen/       main.tscn
-spiel/        aller eigene Spielcode
+szenen/       main.tscn - setzt nur zusammen, 30 Zeilen
+spiel/        aller eigene Spielcode, Teilszenen liegen beim System
   autoload/     Einstellungen (Autoload)
   akteure/
-    gemeinsam/  Kampf, Ausrüstung, Körperoptik - Spieler UND NPC
-    spieler/    Spieler, Inventar
-    npc/        Trainingspuppe, künftige NPCs
+    gemeinsam/  Akteur (Basisklasse), koerper.tscn (das Rig), Kampf,
+                Ausrüstung, Körperoptik - was Spieler UND NPC benutzen
+    spieler/    spieler.tscn, Bewegung, Inventar
+    npc/        npc.tscn, NPC-Bewegung, ki/ (Verhalten), Trainingspuppe
   kamera/       Federarm, Kameranachführung
-  welt/         Weltgenerator, Deko, Wolken, Unterwasser
-  ui/           HUD, Inventar, Karte, Pausenmenü
+  welt/         welt.tscn, Blockindizes, Weltgenerator, Tageszeit, Deko,
+                Wolken, Wasser
+  ui/           ui.tscn + HUD, Inventar, Karte, Pausenmenü
   ressourcen/   Resource-Klassen (ItemDaten, WaffenDaten)
-daten/        Resource-Instanzen (.tres) - hier wächst der Spielinhalt
+daten/        Resource-Instanzen (.tres) - Waffen, Blockbibliothek
 assets/       Meshes, Materialien, Shader
-werkzeuge/    EditorScripts, laufen nie im Spiel
+werkzeuge/    EditorScripts (Pflanzen, Waffen, Blockprüfung), nie im Spiel
 addons/       Fremdcode (zylann.voxel) - nie verändern
 docs/         Dokumentation
 ```
 
 Geordnet ist nach **Feature, nicht nach Dateityp**: kein `scripts/` neben
-`scenes/`, sondern ein Ordner pro Spielsystem.
+`scenes/`, sondern ein Ordner pro Spielsystem. Teilszenen liegen bei ihrem
+System, nicht in `szenen/`.
+
+Das Spiel besteht aus sechs Szenen, die einander instanzieren:
+
+```
+main.tscn ─ Spiel
+            ├─ Welt      -> spiel/welt/welt.tscn
+            ├─ Player    -> spiel/akteure/spieler/spieler.tscn
+            │             └─ Visual -> spiel/akteure/gemeinsam/koerper.tscn
+            ├─ Trainingspuppe
+            ├─ UI        -> spiel/ui/ui.tscn
+            └─ Npc       -> spiel/akteure/npc/npc.tscn
+                          └─ Visual -> spiel/akteure/gemeinsam/koerper.tscn
+```
+
+`koerper.tscn` ist das Würfel-Rig – Spieler und NPCs benutzen dieselbe Datei,
+und beide erben von derselben Basisklasse `Akteur`.
 
 ---
 
@@ -107,11 +128,20 @@ Geordnet ist nach **Feature, nicht nach Dateityp**: kein `scripts/` neben
 ## Stand
 
 Spielbar: Weltgenerierung mit Biomen, Flüssen und Seen · Bäume und Steine ·
-Gras und Blumen im Spielerumkreis · Bewegung mit Stufensteigen, Waten und
-Schwimmen · Nahkampf mit Kombos, Blocken und Parry · Inventar mit Ausrüstung
-und Drag and Drop · Minikarte und große Karte mit Erkundungsnebel und
-Wegpunkten · Pausenmenü mit Audio-, Video- und Steuerungsoptionen.
+Gras und Blumen im Spielerumkreis · Tag-Nacht-Zyklus mit Sonne, Mond und
+Sternen · Bewegung mit Stufensteigen, Waten und Schwimmen · Nahkampf mit
+Kombos, Blocken und Parry · fünf Waffen mit eigener Haltung und Schlagpose,
+Speer wahlweise mit Schild · ein feindlicher NPC, der verfolgt, zuschlägt und
+blockt · Inventar mit Ausrüstungsslots und Drag and Drop · Minikarte und große
+Karte mit Erkundungsnebel und Wegpunkten · Pausenmenü mit Audio-, Video- und
+Steuerungsoptionen.
 
-Fehlt: NPCs · Gebäude · mehr als eine Waffe · Hauptmenü · Spielstand.
+Fehlt: Inventar und Waffen verbinden · weitere NPC-Arten (neutral, passiv,
+freundlich) · Gebäude · Hauptmenü · Spielstand.
+
+Der Umbau der Struktur ist bis Etappe 02 durch: die Szene ist zerlegt, das
+Charakter-Rig ist wiederverwendbar, und die Blockindizes stehen nur noch an
+einer Stelle. Damit ist nichts mehr blockiert – der NPC war der erste
+Inhalt, der davon profitiert hat.
 
 Siehe [docs/roadmap.md](docs/roadmap.md).

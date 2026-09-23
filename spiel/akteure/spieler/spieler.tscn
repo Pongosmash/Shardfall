@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://dvsv05fwdvrvh"]
+
+[ext_resource type="Script" uid="uid://cadglfy1axqmg" path="res://spiel/akteure/spieler/player.gd" id="1_dlr8g"]
+[ext_resource type="PackedScene" uid="uid://n6htcxaxex0t" path="res://spiel/akteure/gemeinsam/koerper.tscn" id="2_1ib8h"]
+[ext_resource type="Script" uid="uid://b5yncbgpu2vgx" path="res://spiel/kamera/spring_arm_camera.gd" id="3_y82xm"]
+[ext_resource type="Script" uid="uid://dwvpa2su1lbu2" path="res://spiel/kamera/camera_follow.gd" id="4_nkpdv"]
+[ext_resource type="Script" uid="uid://bfypdq84qrpww" path="res://spiel/akteure/gemeinsam/combat.gd" id="5_4i5fm"]
+[ext_resource type="Script" uid="uid://b324ug47gk004" path="res://spiel/akteure/spieler/inventar.gd" id="6_tmm58"]
+[ext_resource type="Script" uid="uid://c2l2ln8fyi71b" path="res://spiel/akteure/gemeinsam/ausruestung.gd" id="7_f7cuq"]
+[ext_resource type="Resource" uid="uid://wk0oavyrd2f8" path="res://daten/waffen/faust.tres" id="8_a01f4"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="8_oy0jk"]
+[ext_resource type="Resource" uid="uid://db3y4jfvf8j3u" path="res://daten/waffen/speer.tres" id="9_oy0jk"]
+[ext_resource type="Resource" uid="uid://cel5yeotu7vno" path="res://daten/waffen/holzschild.tres" id="10_boeyv"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7dm0k"]
+radius = 0.33
+height = 1.7
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ig7tw"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_h2yge"]
+radius = 0.3
+
+[node name="Player" type="CharacterBody3D" unique_id=1351285462 node_paths=PackedStringArray("camera_pivot")]
+collision_layer = 2
+script = ExtResource("1_dlr8g")
+walk_speed = 4.2
+sprint_speed = 6.4
+sneak_speed = 1.8
+jump_velocity = 7.0
+stufen_hoehe = 1.0
+wade_speed = 2.6
+swim_speed = 3.4
+camera_pivot = NodePath("SpringArmPivot")
+
+[node name="CollisionShapePlayer" type="CollisionShape3D" parent="." unique_id=1425958572]
+shape = SubResource("CapsuleShape3D_7dm0k")
+
+[node name="MeshInstancePlayer" type="MeshInstance3D" parent="." unique_id=765745209]
+visible = false
+mesh = SubResource("CapsuleMesh_ig7tw")
+
+[node name="Visual" parent="." unique_id=131274033 instance=ExtResource("2_1ib8h")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, 0)
+
+[node name="SpringArmPivot" type="Node3D" parent="." unique_id=613746700 node_paths=PackedStringArray("player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+script = ExtResource("3_y82xm")
+player = NodePath("..")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="SpringArmPivot" unique_id=2080384086]
+shape = SubResource("SphereShape3D_h2yge")
+spring_length = 4.0
+
+[node name="SpringPosition" type="Node3D" parent="SpringArmPivot/SpringArm3D" unique_id=1385831843]
+
+[node name="Camera3D" type="Camera3D" parent="SpringArmPivot" unique_id=366914522 node_paths=PackedStringArray("target", "player")]
+script = ExtResource("4_nkpdv")
+target = NodePath("../SpringArm3D/SpringPosition")
+player = NodePath("../..")
+
+[node name="VoxelViewer" type="VoxelViewer" parent="SpringArmPivot/Camera3D" unique_id=410312277]
+
+[node name="Combat" type="Node" parent="." unique_id=990793068]
+script = ExtResource("5_4i5fm")
+reichweite = 2.1
+hoehen_toleranz = 1.8
+
+[node name="Ausruestung" type="Node" parent="." unique_id=2069132045]
+script = ExtResource("7_f7cuq")
+faust_daten = ExtResource("8_a01f4")
+start_ausruestung = Array[ExtResource("8_oy0jk")]([ExtResource("9_oy0jk"), ExtResource("10_boeyv")])
+
+[node name="Inventar" type="Node" parent="." unique_id=1513103002]
+script = ExtResource("6_tmm58")

@@ -9,6 +9,11 @@ class_name CloudLayer
 @export var wolken_breite := 26.0               # mittlere Ausdehnung einer Wolke
 @export var wind := Vector3(3.0, 0.0, 1.2)      # Blöcke pro Sekunde
 @export var wolken_farbe := Color(0.96, 0.97, 1.0)
+## Optional. Ohne gesetzte Referenz bleiben die Wolken bei 'wolken_farbe' -
+## faellt also nicht auf, solange kein Tag-Nacht-Zyklus existiert, dimmt
+## aber auch nicht ab, sobald einer da ist.
+@export var tageszeit: Tageszeit
+@export var wolken_farbe_nacht := Color(0.22, 0.25, 0.32)
 @export var folge_ziel: Node3D                  # Player hier reinziehen
 @export var seed_wert := 0                      # 0 = jedes Mal anders
 
@@ -23,26 +28,37 @@ class_name CloudLayer
 @export var streckung_max := 1.35
 
 var _multi: MultiMeshInstance3D
+var _material: StandardMaterial3D
 var _zentren: PackedVector3Array = []           # eine Position pro Wolke
 var _offsets: PackedVector3Array = []           # Ballen relativ zum Wolkenzentrum
 var _basen: Array[Basis] = []                   # Drehung + Größe pro Ballen
 
 
 func _ready() -> void:
+	# Rueckfall auf die Gruppe: seit der Spieler eine eigene Szene ist, kann
+	# 'folge_ziel' im Inspektor nicht mehr gesetzt werden - Godot laesst keinen
+	# NodePath ueber eine Szenengrenze hinweg zu. Kein push_error: ohne Ziel
+	# bleibt das Wolkenfeld um den Ursprung stehen, statt mitzuwandern. Das
+	# faellt erst nach ein paar hundert Bloecken auf - deshalb die Warnung.
+	if folge_ziel == null:
+		folge_ziel = get_tree().get_first_node_in_group("player") as Node3D
+	if folge_ziel == null:
+		push_warning("CloudLayer: kein Spieler gefunden, das Wolkenfeld bleibt am Ursprung stehen.")
+
 	var rng := RandomNumberGenerator.new()
 	if seed_wert != 0:
 		rng.seed = seed_wert
 	else:
 		rng.randomize()
 
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = wolken_farbe
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-	mat.roughness = 1.0
+	_material = StandardMaterial3D.new()
+	_material.albedo_color = wolken_farbe
+	_material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	_material.roughness = 1.0
 
 	var box := BoxMesh.new()
 	box.size = Vector3.ONE
-	box.material = mat
+	box.material = _material
 
 	var gesamt: int = anzahl * ballen_pro_wolke
 	var mm := MultiMesh.new()
@@ -110,6 +126,10 @@ func _process(delta: float) -> void:
 		_zentren[c] = p
 
 	_schreibe_transforms()
+
+	if tageszeit != null:
+		_material.albedo_color = wolken_farbe_nacht.lerp(
+				wolken_farbe, tageszeit.tagesanteil_aktuell())
 
 
 func _schreibe_transforms() -> void:

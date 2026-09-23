@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://1hfofvfut1fo"]
+
+[ext_resource type="ArrayMesh" uid="uid://bpaolma0ljg3g" path="res://assets/meshes/waffen/axt.res" id="1_sgaff"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="2_7cgck"]
+
+[resource]
+resource_name = "Axt"
+script = ExtResource("2_7cgck")
+anzeige_name = "Axt"
+beschreibung = "Traeger als ein Schwert, dafuer reisst sie Deckung auf."
+mesh = ExtResource("1_sgaff")
+stil = 2
+schadensart = 1
+schaden = 20.0
+reichweite = 1.8
+treffer_radius = 0.6
+wucht = 4.5
+angriff_dauer = 0.55
+treffer_start = 0.4
+treffer_ende = 0.65
+nachziehzeit = 0.2
+kombo_schritte = 3
+kombo_fenster = 0.4
+ausdauer_kosten = 12.0
+block_ausdauer_kosten = 12.0

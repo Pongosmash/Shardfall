@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://db3y4jfvf8j3u"]
+
+[ext_resource type="ArrayMesh" uid="uid://bm7a8ce0375bp" path="res://assets/meshes/waffen/speer.res" id="1_xrswh"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="2_m7gt3"]
+
+[resource]
+resource_name = "Speer"
+script = ExtResource("2_m7gt3")
+anzeige_name = "Speer"
+beschreibung = "Haelt auf Abstand. Wenig Schaden, viel Reichweite."
+griff = 1
+kann_einhaendig = true
+mesh = ExtResource("1_xrswh")
+stil = 4
+schadensart = 2
+schaden = 18.0
+kritisch_multiplikator = 2.6
+reichweite = 3.1
+treffer_radius = 0.45
+angriff_dauer = 0.5
+treffer_start = 0.3
+treffer_ende = 0.5
+nachziehzeit = 0.18
+kombo_fenster = 0.4
+ausdauer_kosten = 11.0
+block_durchlass = 0.5
+block_ausdauer_kosten = 12.0

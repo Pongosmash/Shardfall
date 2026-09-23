@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://c427bxpyt2tei"]
+
+[ext_resource type="ArrayMesh" uid="uid://bj7qyml744hjj" path="res://assets/meshes/waffen/zweihaender.res" id="1_jxgap"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="2_xnv2x"]
+
+[resource]
+resource_name = "Zweihaender"
+script = ExtResource("2_xnv2x")
+anzeige_name = "Zweihaender"
+beschreibung = "Langsam und teuer, trifft dafuer alles vor sich."
+griff = 1
+mesh = ExtResource("1_jxgap")
+stil = 3
+schadensart = 1
+schaden = 34.0
+kritisch_multiplikator = 2.2
+reichweite = 2.6
+treffer_radius = 0.8
+wucht = 8.0
+angriff_dauer = 0.85
+treffer_start = 0.45
+treffer_ende = 0.75
+nachziehzeit = 0.45
+kombo_fenster = 0.5
+ausdauer_kosten = 22.0
+block_durchlass = 0.3
+block_ausdauer_kosten = 14.0

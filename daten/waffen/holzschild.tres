@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://cel5yeotu7vno"]
+
+[ext_resource type="ArrayMesh" uid="uid://5hqsvrq8eu76" path="res://assets/meshes/waffen/holzschild.res" id="1_kiqi5"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="2_gyv6b"]
+
+[resource]
+resource_name = "Holzschild"
+script = ExtResource("2_gyv6b")
+anzeige_name = "Holzschild"
+beschreibung = "Schluckt fast alles, kostet dafuer die Nebenhand."
+slot = 1
+griff = 2
+mesh = ExtResource("1_kiqi5")
+schaden = 6.0
+kritisch_multiplikator = 1.5
+reichweite = 1.4
+treffer_radius = 0.5
+wucht = 3.5
+angriff_dauer = 0.6
+treffer_start = 0.4
+nachziehzeit = 0.3
+kombo_schritte = 1
+kombo_fenster = 0.3
+ausdauer_kosten = 6.0
+block_durchlass = 0.1
+block_ausdauer_kosten = 5.0

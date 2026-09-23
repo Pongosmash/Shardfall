@@ -45,11 +45,16 @@ signal waffe_gewechselt(daten: WaffenDaten)
 ## Wird benutzt, wenn die rechte Hand leer ist. Griff = LEER, Stil = FAUST.
 @export var faust_daten: WaffenDaten
 ## Startausruestung, direkt beim Spielstart angelegt.
+## Reihenfolge = Ausruestreihenfolge: bei einem Konflikt gewinnt der spaetere
+## Eintrag, weil er den frueheren ablegt.
 @export var start_ausruestung: Array[WaffenDaten] = []
 
 var _slots: Dictionary = {}        ## Slot -> WaffenDaten
 var _modelle: Dictionary = {}      ## Slot -> MeshInstance3D
 var _bereit: bool = false
+## Zwischenspeicher der Einhand-Fassung, siehe _einhand_kopie().
+var _einhand_quelle: WaffenDaten = null
+var _einhand_puffer: WaffenDaten = null
 
 
 func _ready() -> void:
@@ -104,12 +109,22 @@ func ausruesten(daten: WaffenDaten) -> void:
 
 	var ziel: int = daten.slot
 
-	# Zweihaendige Waffen belegen beide Haende.
-	if ziel == WaffenDaten.Slot.HAND_RECHTS and daten.ist_zweihaendig():
+	# Hier steht bewusst erzwingt_zwei_haende() und NICHT ist_zweihaendig().
+	#
+	# Der Griff beschreibt, wie eine Waffe gefuehrt wird, und davon haengen
+	# Schaden und Ausdauer ab. Ob die Nebenhand frei bleiben MUSS, ist eine
+	# andere Frage: Ein Speer ist zweihaendig gefuehrt, laesst aber ein Schild
+	# daneben zu und wird dann eben einhaendig gehalten. Ein Zweihaender nicht.
+	# Diesen Unterschied traegt 'kann_einhaendig' in den WaffenDaten.
+	#
+	# Wer hier wieder ist_zweihaendig() einsetzt, macht Speer und Schild
+	# gleichzeitig unmoeglich - und zwar lautlos: je nach Reihenfolge in
+	# start_ausruestung verschwindet das eine oder das andere.
+	if ziel == WaffenDaten.Slot.HAND_RECHTS and daten.erzwingt_zwei_haende():
 		ablegen(WaffenDaten.Slot.HAND_LINKS)
 	elif ziel == WaffenDaten.Slot.HAND_LINKS:
 		var rechts: WaffenDaten = hole(WaffenDaten.Slot.HAND_RECHTS)
-		if rechts != null and rechts.ist_zweihaendig():
+		if rechts != null and rechts.erzwingt_zwei_haende():
 			ablegen(WaffenDaten.Slot.HAND_RECHTS)
 
 	ablegen(ziel)
@@ -140,17 +155,66 @@ func hole(slot: int) -> WaffenDaten:
 	return _slots.get(slot, null)
 
 
-## Die Waffe, mit der gerade zugeschlagen wird. Nie null, solange
-## 'faust_daten' zugewiesen ist.
-func aktive_waffe() -> WaffenDaten:
+## Was in der Haupthand steckt, ohne Umrechnung. Faust als Rueckfall.
+##
+## Getrennt von aktive_waffe(), weil fuehrt_beidhaendig() sonst rekursiv
+## waere: aktive_waffe() fragt die Fuehrung, die Fuehrung fragt die Waffe.
+func _haupthand_roh() -> WaffenDaten:
 	var w: WaffenDaten = _slots.get(WaffenDaten.Slot.HAND_RECHTS, null)
 	if w != null:
 		return w
 	return faust_daten
 
 
+## Die Waffe, mit der gerade zugeschlagen wird. Nie null, solange
+## 'faust_daten' zugewiesen ist.
+##
+## Wird eine Waffe mit kann_einhaendig gerade nur mit einer Hand gefuehrt,
+## kommt hier eine KOPIE mit den Einhand-Abschlaegen zurueck, nicht das
+## Original. Damit muss combat.gd nichts von der Unterscheidung wissen - es
+## liest wie bisher schaden, angriff_dauer und Verwandte, und bekommt die
+## richtigen Werte. Der Wechsel meldet sich ueber 'waffe_gewechselt', das auch
+## beim An- und Ablegen eines Schildes feuert.
+##
+## Fuer Inventar und Oberflaeche bleibt hole() zustaendig - dort sollen die
+## Werte des Gegenstands stehen, nicht die der aktuellen Fuehrung.
+func aktive_waffe() -> WaffenDaten:
+	var w: WaffenDaten = _haupthand_roh()
+	if w == null:
+		return null
+	if w.kann_einhaendig and w.ist_zweihaendig() and not fuehrt_beidhaendig():
+		return _einhand_kopie(w)
+	return w
+
+
+## Zwischenspeicher fuer die Einhand-Fassung. duplicate() legt jedes Mal eine
+## neue Ressource an, und aktive_waffe() wird von character_visual.gd in jedem
+## Bild gerufen - ohne diesen Puffer waere das eine Ressource pro Bild.
+func _einhand_kopie(w: WaffenDaten) -> WaffenDaten:
+	if _einhand_quelle != w:
+		_einhand_quelle = w
+		_einhand_puffer = w.einhand_fassung()
+	return _einhand_puffer
+
+
 func nebenhand() -> WaffenDaten:
 	return _slots.get(WaffenDaten.Slot.HAND_LINKS, null)
+
+
+## Wird die Haupthandwaffe GERADE beidhaendig gefuehrt?
+##
+## Nicht dasselbe wie ist_zweihaendig(): Ein Speer mit kann_einhaendig ist
+## zweihaendig gefuehrt, solange die Nebenhand frei ist, und einhaendig,
+## sobald dort ein Schild steckt. character_visual.gd setzt die Haende
+## danach, und aktive_waffe() entscheidet daran, ob die Einhand-Abschlaege
+## greifen.
+func fuehrt_beidhaendig() -> bool:
+	var w: WaffenDaten = _haupthand_roh()
+	if w == null or not w.ist_zweihaendig():
+		return false
+	if w.erzwingt_zwei_haende():
+		return true
+	return nebenhand() == null
 
 
 ## True, wenn die Kombo die Haende abwechseln darf (nur bei Faeusten -
@@ -160,7 +224,7 @@ func nebenhand() -> WaffenDaten:
 ## Ressource anlegt und 'griff' auf dem Standardwert EINHAND stehen laesst,
 ## bekaeme sonst lauter rechte Schlaege, ohne dass sichtbar waere warum.
 func haende_wechseln_erlaubt() -> bool:
-	var w: WaffenDaten = aktive_waffe()
+	var w: WaffenDaten = _haupthand_roh()
 	if w == null:
 		return true
 	if w.ist_zweihaendig():

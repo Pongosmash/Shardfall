@@ -181,10 +181,10 @@ class SlotFeld extends Panel:
 		sb.bg_color = eintrag["daten"].modell_farbe
 		sb.set_corner_radius_all(4)
 		vorschau.add_theme_stylebox_override("panel", sb)
-		var wrap := Control.new()
-		wrap.add_child(vorschau)
+		var umbruch := Control.new()
+		umbruch.add_child(vorschau)
 		vorschau.position = -size * 0.5
-		set_drag_preview(wrap)
+		set_drag_preview(umbruch)
 
 		return {"von_index": index, "von_slot": schluessel}
 
@@ -576,7 +576,12 @@ func _suche_inventar() -> void:
 	_spieler = get_tree().get_first_node_in_group("player")
 	if _spieler == null:
 		return
-	_inventar = _spieler.get_node_or_null("Inventar") as Inventar
+	var knoten: Node = _spieler.get_node_or_null("Inventar")
+	print("Spieler: ", _spieler, " | Name: ", _spieler.name,
+			" | Klasse: ", _spieler.get_class(),
+			" | Kinder: ", _spieler.get_children())
+	print("Gruppe player: ", get_tree().get_nodes_in_group("player"))
+	_inventar = knoten as Inventar
 	if _inventar == null:
 		push_warning("InventarUI: Kindknoten 'Inventar' am Player fehlt.")
 		return

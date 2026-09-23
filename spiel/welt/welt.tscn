@@ -1,0 +1,146 @@
+[gd_scene format=3 uid="uid://csea4ax8xyb0l"]
+
+[ext_resource type="Script" uid="uid://pgd3t08qkvn0" path="res://spiel/welt/generator/world_generator.gd" id="1_bgfqv"]
+[ext_resource type="VoxelBlockyLibrary" uid="uid://bjfspvugq34ff" path="res://daten/welt/bloecke.tres" id="2_m6rbd"]
+[ext_resource type="Shader" uid="uid://te3y261ckjb5" path="res://assets/materials/himmel.gdshader" id="3_pd7l4"]
+[ext_resource type="Script" uid="uid://tg23l8s7ds2u" path="res://spiel/welt/cloud_layer.gd" id="4_mfhck"]
+[ext_resource type="Script" uid="uid://daevkxptcsamj" path="res://spiel/welt/underwater.gd" id="5_iqec5"]
+[ext_resource type="Script" uid="uid://c3khj4uqvo0ld" path="res://spiel/welt/deko_layer.gd" id="6_72cyr"]
+[ext_resource type="Script" uid="uid://6cwfjsy36mcg" path="res://spiel/welt/tageszeit.gd" id="7_m6rbd"]
+
+[sub_resource type="VoxelGeneratorScript" id="VoxelGeneratorScript_0odxb"]
+script = ExtResource("1_bgfqv")
+base_height = null
+detail_amplitude = null
+mountain_amplitude = null
+mountain_rarity = null
+sea_level = null
+stone_line = null
+dirt_depth = null
+grat_schaerfe = null
+terrain_frequenz = null
+biom_frequenz = null
+rivers_enabled = null
+river_width = null
+river_depth = null
+river_frequenz = null
+deko_als_voxel = null
+wiesen_schwelle = null
+deko_dichte = null
+blumen_anteil = null
+baeume_aktiv = null
+baum_zelle = null
+baum_dichte = null
+wald_schwelle = null
+tannen_ab = null
+buchen_anteil = null
+anteil_2x2 = null
+anteil_3x3 = null
+max_hangneigung = null
+wald_frequenz = null
+steine_aktiv = null
+stein_zelle = null
+stein_dichte = null
+metadata/_custom_type_script = "uid://pgd3t08qkvn0"
+
+[sub_resource type="VoxelMesherBlocky" id="VoxelMesherBlocky_ig7tw"]
+library = ExtResource("2_m6rbd")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jq2sk"]
+shader = ExtResource("3_pd7l4")
+shader_parameter/farbe_zenit = Color(0.2, 0.45, 0.82, 1)
+shader_parameter/farbe_horizont = Color(0.72, 0.86, 0.96, 1)
+shader_parameter/farbe_boden = Color(0.38, 0.42, 0.4, 1)
+shader_parameter/farbe_zenit_nacht = Color(0.02, 0.03, 0.09, 1)
+shader_parameter/farbe_horizont_nacht = Color(0.05, 0.06, 0.14, 1)
+shader_parameter/farbe_boden_nacht = Color(0.02, 0.02, 0.03, 1)
+shader_parameter/farbe_daemmerung = Color(0.88, 0.42, 0.22, 1)
+shader_parameter/tagesanteil = 1.0
+shader_parameter/daemmerungsanteil = 0.0
+shader_parameter/baender = 8
+shader_parameter/band_wellen = 0.55
+shader_parameter/wellen_frequenz = 3.0
+shader_parameter/horizont_schaerfe = 1.8
+shader_parameter/boden_breite = 3.0
+shader_parameter/kantenweichheit = 0.18
+shader_parameter/sonne_zeigen = true
+shader_parameter/sonne_folgt_licht = true
+shader_parameter/sonne_umkehren = true
+shader_parameter/sonnen_richtung = Vector3(0.45, 0.5, 0.74)
+shader_parameter/sonnen_farbe = Color(1, 0.97, 0.86, 1)
+shader_parameter/sonnen_groesse = 0.055
+shader_parameter/sonnen_rand = 0.012
+shader_parameter/schein_farbe = Color(1, 0.9, 0.68, 1)
+shader_parameter/schein_weite = 0.55
+shader_parameter/schein_staerke = 0.35
+shader_parameter/mond_richtung = Vector3(-0.45, -0.5, -0.74)
+shader_parameter/mond_farbe = Color(0.85, 0.87, 0.92, 1)
+shader_parameter/mond_groesse = 0.05
+shader_parameter/mond_schein_weite = 0.1
+shader_parameter/mond_schein_staerke = 0.12
+shader_parameter/krater_staerke = 0.45
+shader_parameter/sterne_zeigen = true
+shader_parameter/sterne_dichte = 0.99499998067064
+shader_parameter/sterne_helligkeit = 1.0
+shader_parameter/sterne_farbe = Color(1, 1, 0.95, 1)
+shader_parameter/sterne_raster = 200.000007125
+shader_parameter/sterne_winkel = 0.0
+
+[sub_resource type="Sky" id="Sky_4k2k6"]
+sky_material = SubResource("ShaderMaterial_jq2sk")
+
+[sub_resource type="Environment" id="Environment_lquwl"]
+background_mode = 2
+sky = SubResource("Sky_4k2k6")
+ambient_light_source = 3
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.72156864, 0.85882354, 0.9607843, 1)
+fog_sun_scatter = 0.1
+fog_density = 1.0
+fog_sky_affect = 0.0
+fog_depth_begin = 110.0
+fog_depth_end = 195.0
+adjustment_enabled = true
+
+[node name="Welt" type="Node3D" unique_id=271490178]
+
+[node name="VoxelTerrain" type="VoxelTerrain" parent="." unique_id=93584333 groups=["gelaende"]]
+max_view_distance = 200
+run_stream_in_editor = false
+generator = SubResource("VoxelGeneratorScript_0odxb")
+mesher = SubResource("VoxelMesherBlocky_ig7tw")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=657902903]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_split_1 = 0.15
+directional_shadow_split_2 = 0.35
+directional_shadow_split_3 = 0.7
+directional_shadow_fade_start = 0.95
+directional_shadow_max_distance = 900.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=616924450]
+environment = SubResource("Environment_lquwl")
+
+[node name="CloudLayer" type="Node3D" parent="." unique_id=1697870318 node_paths=PackedStringArray("tageszeit")]
+script = ExtResource("4_mfhck")
+tageszeit = NodePath("../Tageszeit")
+
+[node name="Underwater" type="Node" parent="." unique_id=1036780311 node_paths=PackedStringArray("terrain", "world_env", "tageszeit")]
+script = ExtResource("5_iqec5")
+terrain = NodePath("../VoxelTerrain")
+world_env = NodePath("../WorldEnvironment")
+tageszeit = NodePath("../Tageszeit")
+
+[node name="DekoLayer" type="Node3D" parent="." unique_id=1069085858 node_paths=PackedStringArray("terrain")]
+script = ExtResource("6_72cyr")
+terrain = NodePath("../VoxelTerrain")
+radius = 80.0
+uebergang = 20.0
+
+[node name="Tageszeit" type="Node" parent="." unique_id=197552589 node_paths=PackedStringArray("licht", "world_env")]
+script = ExtResource("7_m6rbd")
+licht = NodePath("../DirectionalLight3D")
+world_env = NodePath("../WorldEnvironment")
+stunde = 10.752

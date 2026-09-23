@@ -22,6 +22,15 @@ signal geblockt(menge: float)              # normal geblockt
 signal perfekt_geblockt()                  # Parry gelungen
 signal deckung_gebrochen()                 # Ausdauer reichte nicht
 
+@export_group("Steuerung")
+## AN (Vorgabe): liest Input.is_action_pressed("attack"/"block") wie bisher -
+## das ist der Spieler. AUS: _eingabe() liest KEINE Eingaben mehr, eine KI
+## loest Schlag/Block stattdessen ueber ki_angreifen()/ki_blocken() aus. Ohne
+## dieses Feld wuerden ALLE Combat-Instanzen (Spieler und jeder NPC) auf
+## denselben Tastendruck reagieren - Input ist ein globaler Zustand, keiner
+## pro Knoten.
+@export var von_spieler_gesteuert: bool = true
+
 @export_group("Leben")
 @export var max_leben: float = 100.0
 @export var tot_dauer: float = 2.0                # Sekunden bis zum Wiederbeleben
@@ -114,8 +123,8 @@ var _kombo_max: int = 3
 
 func _ready() -> void:
 	_player = get_parent()
-	if _player == null or not _player is CharacterBody3D:
-		push_error("Combat: Elternknoten ist kein CharacterBody3D (Player)!")
+	if _player == null or not _player is Akteur:
+		push_error("Combat: Elternknoten ist kein Akteur (Player oder NPC)!")
 		set_process(false)
 		return
 
@@ -247,6 +256,8 @@ func schwachstelle_schliessen() -> void:
 # ---------------------------------------------------------------- Eingabe
 
 func _eingabe(delta: float) -> void:
+	if not von_spieler_gesteuert:
+		return
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		ist_am_blocken = false
 		_block_seit = 999.0
@@ -287,6 +298,43 @@ func _eingabe(delta: float) -> void:
 		_starte_schlag(0)
 	elif _phase == Phase.ERHOLUNG and kombo_index + 1 < _kombo_max:
 		_kombo_puffer = true
+
+
+# ---------------------------------------------------------------- KI-Eingabe
+
+## Fuer KI-gesteuerte Akteure (von_spieler_gesteuert = false): loest einen
+## Schlag aus, als haette jemand "attack" gedrueckt. Respektiert Ausdauer,
+## Erschoepfung und laufende Kombo genauso wie ein echter Tastendruck - ruft
+## intern dieselbe _starte_schlag()/_kombo_puffer-Logik.
+func ki_angreifen() -> void:
+	if von_spieler_gesteuert or ist_betaeubt or ist_tot or ist_am_blocken:
+		return
+	if _phase == Phase.KEINE:
+		_starte_schlag(0)
+	elif _phase == Phase.ERHOLUNG and kombo_index + 1 < _kombo_max:
+		_kombo_puffer = true
+
+
+## Fuer KI-gesteuerte Akteure: haelt oder loest die Blockhaltung, wie ein
+## gehaltener Tastendruck. 'halten' pro Bild neu uebergeben, nicht einmalig.
+func ki_blocken(halten: bool, delta: float) -> void:
+	if von_spieler_gesteuert:
+		return
+	var moeglich: bool = not ist_betaeubt
+	var block_erlaubt: bool = ausruestung == null or aktive_blockwaffe() != null
+	var will_blocken: bool = halten and moeglich and block_erlaubt \
+			and _phase == Phase.KEINE and not ist_erschoepft
+
+	if will_blocken and not ist_am_blocken:
+		_block_seit = 0.0
+	elif will_blocken:
+		_block_seit += delta
+	else:
+		_block_seit = 999.0
+
+	ist_am_blocken = will_blocken
+	if ist_am_blocken:
+		_kampf_timer = kampf_dauer
 
 
 # ---------------------------------------------------------------- Angriff
@@ -541,7 +589,12 @@ func _sterben() -> void:
 	_offen_timer = 0.0
 	_beende_schlag()
 	_tot_timer = tot_dauer
-	print("Spieler gestorben – Wiederbelebung in ", tot_dauer, " s")
+	# Die Meldung sagte bisher immer "Spieler", auch wenn ein NPC gestorben
+	# ist - das hat beim Testen fuer Verwirrung gesorgt.
+	if von_spieler_gesteuert:
+		print("Spieler gestorben – Wiederbelebung in ", tot_dauer, " s")
+	else:
+		print(_player.name, " gestorben.")
 
 
 func _wiederbeleben() -> void:
@@ -590,7 +643,10 @@ func _timer_update(delta: float) -> void:
 		if _betaeubung_timer <= 0.0:
 			ist_betaeubt = false
 
-	if ist_tot:
+	# Nur der Spieler wird automatisch wiederbelebt. Ein besiegter NPC bleibt
+	# liegen - fuer ihn gibt es (noch) keine automatische Wiederbelebung,
+	# sonst steht er nach 2 Sekunden einfach wieder auf und laeuft weiter.
+	if ist_tot and von_spieler_gesteuert:
 		_tot_timer -= delta
 		if _tot_timer <= 0.0:
 			_wiederbeleben()

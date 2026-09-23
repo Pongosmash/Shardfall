@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bwir36ihhejj7"]
+
+[ext_resource type="Script" uid="uid://cdqj1yhl4rx5u" path="res://spiel/ui/menue/pause_menue.gd" id="1_yayjg"]
+[ext_resource type="Script" uid="uid://d3v12anftyet" path="res://spiel/ui/karte/karte.gd" id="2_xm7m2"]
+[ext_resource type="Script" uid="uid://b2vkrhtoibv6l" path="res://spiel/ui/inventar/inventar_ui.gd" id="3_e61go"]
+[ext_resource type="Script" uid="uid://brmg8fhjlnsv7" path="res://spiel/ui/hud/hud.gd" id="4_6hmnu"]
+
+[node name="UI" type="Node" unique_id=2091835167]
+
+[node name="PauseMenue" type="CanvasLayer" parent="." unique_id=153592278]
+script = ExtResource("1_yayjg")
+
+[node name="Karte" type="Node" parent="." unique_id=337358104]
+script = ExtResource("2_xm7m2")
+
+[node name="InventarUI" type="Node" parent="." unique_id=568951367]
+script = ExtResource("3_e61go")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1756589669]
+script = ExtResource("4_6hmnu")

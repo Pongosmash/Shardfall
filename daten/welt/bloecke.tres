@@ -1,0 +1,151 @@
+[gd_resource type="VoxelBlockyLibrary" format=3 uid="uid://bjfspvugq34ff"]
+
+[ext_resource type="Material" uid="uid://cnhyl3v2wwws3" path="res://assets/materials/voxel_solid.tres" id="1_yngko"]
+[ext_resource type="Material" uid="uid://6j3kcm7bx4kt" path="res://assets/materials/plants/gras_kurz.tres" id="2_c66fv"]
+[ext_resource type="ArrayMesh" uid="uid://bbp87npw5ww2" path="res://assets/meshes/plants/gras_kurz.res" id="3_6te1h"]
+[ext_resource type="Material" uid="uid://b1iew41wibagv" path="res://assets/materials/plants/gras_mittel.tres" id="4_rfdyf"]
+[ext_resource type="ArrayMesh" uid="uid://bbjjj4utc6vab" path="res://assets/meshes/plants/gras_mittel.res" id="5_kuhk5"]
+[ext_resource type="Material" uid="uid://mthr6260y37x" path="res://assets/materials/plants/gras_hoch.tres" id="6_8tyxe"]
+[ext_resource type="ArrayMesh" uid="uid://b7n0t14kh0kn0" path="res://assets/meshes/plants/gras_hoch.res" id="7_kfsn5"]
+[ext_resource type="Material" uid="uid://cc8qrcastrm7s" path="res://assets/materials/plants/gras_trocken.tres" id="8_jkopo"]
+[ext_resource type="ArrayMesh" uid="uid://dd0kagumepl4x" path="res://assets/meshes/plants/gras_trocken.res" id="9_svct2"]
+[ext_resource type="Material" uid="uid://cbbvpdgw1iplc" path="res://assets/materials/plants/gras_busch.tres" id="10_fxaxy"]
+[ext_resource type="ArrayMesh" uid="uid://b5w6xqv8a1di2" path="res://assets/meshes/plants/gras_busch.res" id="11_wi17g"]
+[ext_resource type="Material" uid="uid://bce7vo1abqgec" path="res://assets/materials/plants/stiel.tres" id="12_caggb"]
+[ext_resource type="Material" uid="uid://dicnudu3wslts" path="res://assets/materials/plants/bluete_rot.tres" id="13_iqs84"]
+[ext_resource type="ArrayMesh" uid="uid://dvt1jj7bisy33" path="res://assets/meshes/plants/blume_rot.res" id="14_elqpn"]
+[ext_resource type="Material" uid="uid://bain65xj362if" path="res://assets/materials/plants/bluete_gelb.tres" id="15_yyaqt"]
+[ext_resource type="ArrayMesh" uid="uid://uxhs823hffvd" path="res://assets/meshes/plants/blume_gelb.res" id="16_efs41"]
+[ext_resource type="Material" uid="uid://c6m4b5nc768mw" path="res://assets/materials/plants/bluete_lila.tres" id="17_nc4bd"]
+[ext_resource type="ArrayMesh" uid="uid://b206kl6bt5gta" path="res://assets/meshes/plants/blume_lila.res" id="18_wxseh"]
+
+[sub_resource type="VoxelBlockyModelEmpty" id="VoxelBlockyModelEmpty_7dm0k"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 0.5882353)
+metallic = 0.3
+roughness = 0.1
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_ig7tw"]
+color = Color(0.16862746, 0.38039216, 1, 1)
+transparency_index = 2
+lod_skirts_enabled = false
+collision_aabbs = Array[AABB]([])
+material_override_0 = SubResource("StandardMaterial3D_1bvp3")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_h2yge"]
+color = Color(0.18662637, 0.45425546, 0.22872436, 1)
+material_override_0 = ExtResource("1_yngko")
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_1bvp3"]
+color = Color(0.30103758, 0.33688164, 0.35015097, 1)
+material_override_0 = ExtResource("1_yngko")
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_lquwl"]
+color = Color(0.24076903, 0.15014127, 0.042635657, 1)
+material_override_0 = ExtResource("1_yngko")
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_cegan"]
+mesh = ExtResource("3_6te1h")
+transparency_index = 1
+culls_neighbors = false
+material_override_0 = ExtResource("2_c66fv")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_82xsv"]
+mesh = ExtResource("5_kuhk5")
+material_override_0 = ExtResource("4_rfdyf")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_getpj"]
+mesh = ExtResource("7_kfsn5")
+material_override_0 = ExtResource("6_8tyxe")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_ryguw"]
+mesh = ExtResource("9_svct2")
+material_override_0 = ExtResource("8_jkopo")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_d13ii"]
+mesh = ExtResource("11_wi17g")
+material_override_0 = ExtResource("10_fxaxy")
+collision_enabled_0 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_1u8w0"]
+mesh = ExtResource("14_elqpn")
+material_override_0 = ExtResource("12_caggb")
+material_override_1 = ExtResource("13_iqs84")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_0odxb"]
+mesh = ExtResource("16_efs41")
+material_override_0 = ExtResource("12_caggb")
+material_override_1 = ExtResource("15_yyaqt")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="VoxelBlockyModelMesh" id="VoxelBlockyModelMesh_lswn8"]
+mesh = ExtResource("18_wxseh")
+transparency_index = 1
+culls_neighbors = false
+material_override_0 = ExtResource("12_caggb")
+material_override_1 = ExtResource("17_nc4bd")
+collision_enabled_0 = false
+collision_enabled_1 = false
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0odxb"]
+albedo_color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_0odxb"]
+color = Color(0.41960785, 0.2901961, 0.18431373, 1)
+material_override_0 = SubResource("StandardMaterial3D_0odxb")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lswn8"]
+albedo_color = Color(0.6117647, 0.54509807, 0.4627451, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_lswn8"]
+color = Color(0.6117647, 0.54509807, 0.4627451, 1)
+material_override_0 = SubResource("StandardMaterial3D_lswn8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a6jrf"]
+albedo_color = Color(0.2901961, 0.20784314, 0.14117648, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_a6jrf"]
+color = Color(0.2901961, 0.20784314, 0.14117648, 1)
+material_override_0 = SubResource("StandardMaterial3D_a6jrf")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xuqvo"]
+albedo_color = Color(0.24705882, 0.47843137, 0.18039216, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_xuqvo"]
+color = Color(0.24705882, 0.47843137, 0.18039216, 1)
+material_override_0 = SubResource("StandardMaterial3D_xuqvo")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qsp4k"]
+albedo_color = Color(0.4509804, 0.7019608, 0.25490198, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_qsp4k"]
+color = Color(0.4509804, 0.7019608, 0.25490198, 1)
+material_override_0 = SubResource("StandardMaterial3D_qsp4k")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kq58d"]
+albedo_color = Color(0.16470589, 0.3372549, 0.21960784, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_kq58d"]
+color = Color(0.16470589, 0.3372549, 0.21960784, 1)
+material_override_0 = SubResource("StandardMaterial3D_kq58d")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_seu75"]
+albedo_color = Color(0.47843137, 0.47843137, 0.47058824, 1)
+
+[sub_resource type="VoxelBlockyModelCube" id="VoxelBlockyModelCube_seu75"]
+color = Color(0.47843137, 0.47843137, 0.47058824, 1)
+material_override_0 = SubResource("StandardMaterial3D_seu75")
+
+[resource]
+models = Array[VoxelBlockyModel]([SubResource("VoxelBlockyModelEmpty_7dm0k"), SubResource("VoxelBlockyModelCube_ig7tw"), SubResource("VoxelBlockyModelCube_h2yge"), SubResource("VoxelBlockyModelCube_1bvp3"), SubResource("VoxelBlockyModelCube_lquwl"), SubResource("VoxelBlockyModelMesh_cegan"), SubResource("VoxelBlockyModelMesh_82xsv"), SubResource("VoxelBlockyModelMesh_getpj"), SubResource("VoxelBlockyModelMesh_ryguw"), SubResource("VoxelBlockyModelMesh_d13ii"), SubResource("VoxelBlockyModelMesh_1u8w0"), SubResource("VoxelBlockyModelMesh_0odxb"), SubResource("VoxelBlockyModelMesh_lswn8"), SubResource("VoxelBlockyModelCube_0odxb"), SubResource("VoxelBlockyModelCube_lswn8"), SubResource("VoxelBlockyModelCube_a6jrf"), SubResource("VoxelBlockyModelCube_xuqvo"), SubResource("VoxelBlockyModelCube_qsp4k"), SubResource("VoxelBlockyModelCube_kq58d"), SubResource("VoxelBlockyModelCube_seu75")])

@@ -96,8 +96,15 @@ func _ready() -> void:
 		push_error("DekoLayer: Feld 'terrain' ist nicht zugewiesen!")
 		set_process(false)
 		return
+	# Rueckfall auf die Gruppe: seit der Spieler eine eigene Szene ist, kann
+	# 'ziel' im Inspektor nicht mehr gesetzt werden - Godot laesst keinen
+	# NodePath ueber eine Szenengrenze hinweg zu. Das Exportfeld bleibt als
+	# Uebersteuerung erhalten, ist aber keine Pflicht mehr.
 	if ziel == null:
-		push_error("DekoLayer: Feld 'ziel' ist nicht zugewiesen!")
+		ziel = get_tree().get_first_node_in_group("player") as Node3D
+	if ziel == null:
+		push_error("DekoLayer: kein Spieler gefunden. Weder 'ziel' zugewiesen "
+				+ "noch jemand in der Gruppe 'player'.")
 		set_process(false)
 		return
 

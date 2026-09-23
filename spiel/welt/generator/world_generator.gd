@@ -2,30 +2,35 @@ extends VoxelGeneratorScript
 class_name WorldGenerator
 
 # --- Block-Indizes ---
-const AIR          := 0
-const WATER        := 1
-const GRASS        := 2
-const STONE        := 3
-const DIRT         := 4
-const GRAS_KURZ    := 5
-const GRAS_MITTEL  := 6
-const GRAS_HOCH    := 7
-const GRAS_TROCKEN := 8
-const GRAS_BUSCH   := 9
-const BLUME_ROT    := 10
-const BLUME_GELB   := 11
-const BLUME_LILA   := 12
-const HOLZ_EICHE   := 13
-const HOLZ_BUCHE   := 14
-const HOLZ_TANNE   := 15
-const LAUB_EICHE   := 16
-const LAUB_BUCHE   := 17
-const LAUB_TANNE   := 18
-const FELS         := 19
+# Die Werte stehen in spiel/welt/bloecke.gd und werden hier nur unter den
+# alten Namen weitergereicht. Nicht loeschen: deko_layer.gd liest achtzehnmal
+# WorldGenerator.GRAS_KURZ und Verwandte, und die Verwendungsstellen in dieser
+# Datei bleiben so unangetastet. Konstante aus Konstante kostet nichts.
+# Die Umbenennung AIR -> LUFT usw. ist ein eigener Commit.
+const AIR          := Bloecke.LUFT
+const WATER        := Bloecke.WASSER
+const GRASS        := Bloecke.GRAS
+const STONE        := Bloecke.STEIN
+const DIRT         := Bloecke.ERDE
+const GRAS_KURZ    := Bloecke.GRAS_KURZ
+const GRAS_MITTEL  := Bloecke.GRAS_MITTEL
+const GRAS_HOCH    := Bloecke.GRAS_HOCH
+const GRAS_TROCKEN := Bloecke.GRAS_TROCKEN
+const GRAS_BUSCH   := Bloecke.GRAS_BUSCH
+const BLUME_ROT    := Bloecke.BLUME_ROT
+const BLUME_GELB   := Bloecke.BLUME_GELB
+const BLUME_LILA   := Bloecke.BLUME_LILA
+const HOLZ_EICHE   := Bloecke.HOLZ_EICHE
+const HOLZ_BUCHE   := Bloecke.HOLZ_BUCHE
+const HOLZ_TANNE   := Bloecke.HOLZ_TANNE
+const LAUB_EICHE   := Bloecke.LAUB_EICHE
+const LAUB_BUCHE   := Bloecke.LAUB_BUCHE
+const LAUB_TANNE   := Bloecke.LAUB_TANNE
+const FELS         := Bloecke.FELS
 
 # Deko darf von Strukturen überschrieben werden, Terrain nicht
-const DEKO_MIN := GRAS_KURZ
-const DEKO_MAX := BLUME_LILA
+const DEKO_MIN := Bloecke.PFLANZE_MIN
+const DEKO_MAX := Bloecke.PFLANZE_MAX
 
 # Maximale Ausdehnung einer Struktur – so weit über den Chunkrand hinaus
 # muss nach Bäumen gesucht werden. Muss zur größten Krone passen!

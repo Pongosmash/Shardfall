@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://p3r1a0qqsvv3"]
+
+[ext_resource type="Script" uid="uid://4lan5dhyb42r" path="res://spiel/akteure/npc/npc.gd" id="1_63tk5"]
+[ext_resource type="PackedScene" uid="uid://n6htcxaxex0t" path="res://spiel/akteure/gemeinsam/koerper.tscn" id="2_nqn85"]
+[ext_resource type="Script" uid="uid://bfypdq84qrpww" path="res://spiel/akteure/gemeinsam/combat.gd" id="3_aq5bk"]
+[ext_resource type="Script" uid="uid://bl6nwcshq3v8x" path="res://spiel/akteure/npc/ki/feindlich.gd" id="4_kmqk2"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1f1bv"]
+radius = 0.33
+height = 1.7
+
+[node name="Npc" type="CharacterBody3D" unique_id=58823746]
+collision_layer = 2
+script = ExtResource("1_63tk5")
+
+[node name="CollisionShapeNpc" type="CollisionShape3D" parent="." unique_id=393554854]
+shape = SubResource("CapsuleShape3D_1f1bv")
+
+[node name="Visual" parent="." unique_id=131274033 instance=ExtResource("2_nqn85")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, 0)
+
+[node name="Combat" type="Node" parent="." unique_id=269653392]
+script = ExtResource("3_aq5bk")
+von_spieler_gesteuert = false
+max_leben = 60.0
+max_kombo = 1
+
+[node name="Ki" type="Node" parent="." unique_id=191795509]
+script = ExtResource("4_kmqk2")

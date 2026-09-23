@@ -168,8 +168,19 @@ var _info: Label
 # ---------------------------------------------------------------- Aufbau
 
 func _ready() -> void:
+	# Rueckfall auf Gruppen: seit Spieler und Gelaende eigene Szenen sind,
+	# koennen 'ziel' und 'terrain' im Inspektor nicht mehr gesetzt werden -
+	# Godot laesst keinen NodePath ueber eine Szenengrenze hinweg zu. Die
+	# Exportfelder bleiben als Uebersteuerung erhalten, sind aber keine
+	# Pflicht mehr. Das VoxelTerrain muss dafuer in der Gruppe 'gelaende'
+	# sein (im Inspektor unter Knoten -> Gruppen eintragen).
+	if ziel == null:
+		ziel = get_tree().get_first_node_in_group("player") as Node3D
+	if terrain == null:
+		terrain = get_tree().get_first_node_in_group("gelaende") as VoxelTerrain
 	if terrain == null or ziel == null:
-		push_error("Karte: 'terrain' und 'ziel' müssen zugewiesen sein.")
+		push_error("Karte: kein Gelaende in der Gruppe 'gelaende' oder kein "
+				+ "Spieler in der Gruppe 'player' gefunden.")
 		set_process(false)
 		return
 

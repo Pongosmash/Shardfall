@@ -1,5 +1,5 @@
 class_name Player
-extends CharacterBody3D
+extends Akteur
 
 @export_group("Geschwindigkeit")
 @export var walk_speed: float = 6.0
@@ -54,24 +54,19 @@ extends CharacterBody3D
 @export var schwimm_kapsel_winkel: float = 72.0   # Grad, passend zur Optik
 
 @export_group("Referenzen")
-@export var camera_pivot: Node3D
 @export var spawn_check_distance: float = 200.0
 
-# Öffentlicher Zustand, den character_visual.gd und camera_follow.gd lesen
-var is_sprinting: bool = false
-var is_sneaking: bool = false
+# Öffentlicher Zustand, den character_visual.gd und camera_follow.gd lesen.
+# is_sprinting, is_sneaking, is_swimming, is_climbing, wunsch_richtung,
+# camera_pivot und combat kommen jetzt von Akteur - gemeinsamer Vertrag mit
+# einem spaeteren Npc, siehe akteur.gd.
 var is_wading: bool = false        # flaches Wasser -> laufen, aber langsamer
-var is_swimming: bool = false      # tiefes Wasser -> schwimmen
 var is_submerged: bool = false     # Kopf unter Wasser -> für Optik
-var is_climbing: bool = false      # steigt gerade eine Stufe hoch
 
 # Bleibt aus Kompatibilität erhalten und ist jetzt immer 0.0: Das Stufensteigen
 # läuft über echte Bewegung, es braucht keinen optischen Ausgleich mehr.
 # Die Zeile in camera_follow.gd kann so stehen bleiben oder raus.
 var stufen_versatz: float = 0.0
-
-# Kampfkomponente (Kindknoten "Combat"); kann null sein
-var combat: Combat = null
 
 var _terrain_ready: bool = false
 var _coyote_timer: float = 0.0
@@ -82,24 +77,24 @@ var _shape_node: CollisionShape3D = null
 var _kapsel: CapsuleShape3D = null
 var _spawn_position: Vector3 = Vector3.ZERO
 
-# Eingaberichtung dieses Frames, bereits um die Kamera gedreht; 0 ohne Eingabe.
-# character_visual.gd richtet das Modell danach aus – NICHT nach velocity, die
-# hinkt durch die Beschleunigung deutlich hinterher und zieht beim Kameraschwenk
-# einen weiten Bogen. Dient außerdem der Stufenprüfung, weil move_and_slide()
-# die Geschwindigkeit an einer Wand auf null bremst.
-var wunsch_richtung: Vector3 = Vector3.ZERO
-
 var _tempo_vor_move: float = 0.0
 var _pos_vor_move: Vector3 = Vector3.ZERO
 var _stufen_ziel_y: float = 0.0
 
 
-func _ready() -> void:
-	# Gruppen: "damageable" = kann Schaden nehmen, "humanoid" = Ziel für Orks
+## Gruppen bewusst hier und nicht in _ready(): Godot arbeitet den gesamten
+## Baum mit _enter_tree ab, BEVOR irgendein _ready laeuft. In _ready waere die
+## Gruppe nur fuer Knoten gefuellt, die im Szenenbaum hinter dem Spieler
+## stehen - deko_layer.gd, cloud_layer.gd und karte.gd liegen inzwischen in
+## welt.tscn und ui.tscn und kaemen zu frueh.
+## "damageable" = kann Schaden nehmen, "humanoid" = Ziel fuer Orks.
+func _enter_tree() -> void:
 	add_to_group("damageable")
 	add_to_group("humanoid")
 	add_to_group("player")
 
+
+func _ready() -> void:
 	_spawn_position = global_position
 
 	combat = get_node_or_null("Combat") as Combat
@@ -124,11 +119,18 @@ func _ready() -> void:
 	else:
 		push_warning("Player: CollisionShapePlayer hat keine CapsuleShape3D – kein Ducken.")
 
+	# Rueckfall auf die Gruppe: seit Spieler und Gelaende eigene Szenen sind,
+	# kann 'terrain' im Inspektor nicht mehr gesetzt werden - Godot laesst
+	# keinen NodePath ueber eine Szenengrenze hinweg zu. Das VoxelTerrain
+	# muss dafuer in der Gruppe 'gelaende' sein. Das Exportfeld bleibt als
+	# Uebersteuerung erhalten.
+	if terrain == null:
+		terrain = get_tree().get_first_node_in_group("gelaende") as VoxelTerrain
 	if terrain:
 		_voxel_tool = terrain.get_voxel_tool()
 		_voxel_tool.channel = VoxelBuffer.CHANNEL_TYPE
 	else:
-		push_warning("Player: Feld 'terrain' nicht zugewiesen – kein Schwimmen.")
+		push_warning("Player: kein Gelaende in der Gruppe 'gelaende' – kein Schwimmen.")
 
 	# Ab hier verwaltet das Pausenmenü den Mauszustand: Es fängt die Maus beim
 	# Schließen wieder ein und gibt sie beim Öffnen frei. Der Player hört
@@ -279,26 +281,8 @@ func _stufe_log(text: String) -> void:
 
 # ---------------------------------------------------------------- Kampf
 
-# Wird von Gegnern und von combat.gd aufgerufen.
-func take_damage(menge: float, angreifer: Node = null,
-		richtung: Vector3 = Vector3.ZERO) -> void:
-	if combat:
-		combat.schaden_erhalten(menge, angreifer, richtung)
-
-
-# Ein Gegner hat perfekt geblockt -> Spieler ist kurz offen.
-func schwachstelle_oeffnen(dauer: float) -> void:
-	if combat:
-		combat.schwachstelle_oeffnen(dauer)
-
-
-func ist_offen() -> bool:
-	return combat != null and combat.ist_offen()
-
-
-func schwachstelle_schliessen() -> void:
-	if combat:
-		combat.schwachstelle_schliessen()
+# take_damage(), schwachstelle_oeffnen(), ist_offen(), schwachstelle_schliessen()
+# kommen jetzt von Akteur - identische Logik, jetzt fuer Player UND Npc.
 
 
 # Nach dem Tod: zurück an den Startpunkt, Bodenprüfung läuft neu.

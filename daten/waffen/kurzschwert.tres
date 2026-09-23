@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WaffenDaten" format=3 uid="uid://78eign5wsrt7"]
+
+[ext_resource type="ArrayMesh" uid="uid://csrv08gxdc2df" path="res://assets/meshes/waffen/kurzschwert.res" id="1_3s6dk"]
+[ext_resource type="Script" uid="uid://b4imoocb5o5wf" path="res://spiel/ressourcen/waffen_daten.gd" id="2_u1c8r"]
+
+[resource]
+resource_name = "Kurzschwert"
+script = ExtResource("2_u1c8r")
+anzeige_name = "Kurzschwert"
+beschreibung = "Schnell, kurz, verzeiht wenig Abstand."
+mesh = ExtResource("1_3s6dk")
+stil = 1
+schadensart = 2
+schaden = 14.0
+kritisch_multiplikator = 2.8
+reichweite = 1.9
+wucht = 2.0
+angriff_dauer = 0.42
+treffer_start = 0.34
+kombo_schritte = 3
+kombo_fenster = 0.45
+block_durchlass = 0.35
+block_ausdauer_kosten = 10.0
