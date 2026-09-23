@@ -42,8 +42,6 @@ Trainingspuppe in der Ausgabe, läuft das Spiel. Die Fehler
 `keyboard_get_keycode_from_physical: Not supported by this display server`
 sind normal und treten nur kopflos auf – der Dummy-Displayserver hat keine
 Tastatur, und das Pausenmenü fragt beim Bau seiner Tastenzeilen danach.
-Zwei Warnungen "keine Ausruestung gefunden" stammen vom NPC, der noch ohne
-Ausrüstung kämpft.
 
 ---
 

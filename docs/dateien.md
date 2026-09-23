@@ -42,7 +42,7 @@ alles zusammensetzt.
 | `szenen/main.tscn` | 30 | Wurzelknoten `Spiel`. Instanziert Welt, Player, UI und einen NPC, dazu die Trainingspuppe. Sonst nichts. |
 | `spiel/welt/welt.tscn` | 146 | `VoxelTerrain` (Gruppe `gelaende`), Licht, `WorldEnvironment` mit Himmel-Shader, Wolken, Unterwasser, Deko, Tageszeit |
 | `spiel/akteure/spieler/spieler.tscn` | 75 | `Player` mit Kollisionskapsel, Körper, Federarmkamera, Combat, Ausruestung (Start: Speer + Holzschild), Inventar |
-| `spiel/akteure/npc/npc.tscn` | 29 | `Npc` mit Kollisionskapsel, Körper, Combat (KI-gesteuert) und feindlicher KI. **Ohne Ausruestung.** |
+| `spiel/akteure/npc/npc.tscn` | 35 | `Npc` mit Kollisionskapsel, Körper, Combat (KI-gesteuert), Ausruestung (nur Faust) und feindlicher KI |
 | `spiel/akteure/gemeinsam/koerper.tscn` | 72 | Das Würfel-Rig. **Für Spieler und NPCs dieselbe Datei.** Proportionen als Exportwerte in der Szene. |
 | `spiel/ui/ui.tscn` | 20 | PauseMenue, Karte, InventarUI, HUD – vier Knoten, kein einziger Exportwert |
 
@@ -140,7 +140,7 @@ steckt im Block fest.
 
 | Datei | Zeilen | `class_name` | Aufgabe |
 |---|---:|---|---|
-| `npc.tscn` | 29 | — | Der zusammengesetzte NPC, Gegenstück zu `spieler.tscn` |
+| `npc.tscn` | 35 | — | Der zusammengesetzte NPC, Gegenstück zu `spieler.tscn` |
 | `npc.gd` | 300 | `Npc` | `extends Akteur`. Schwerkraft, Laufen nach `wunsch_richtung`, Stufensteigen und vereinfachtes Schwimmen (beides aus `player.gd` übernommen). Tod: umkippen, liegen, versinken, `queue_free`. |
 | `ki/feindlich.gd` | 151 | — | Feindliche KI als Knoten `Ki`: erkennt den Spieler per Radius und Sichtlinie, verfolgt, dreht sich zu ihm, schlägt zu, blockt gelegentlich. Setzt nur `wunsch_richtung` und ruft `combat.ki_angreifen()` / `ki_blocken()`. |
 | `trainingspuppe.gd` | 283 | — | Testziel. Stellt sich beim Start selbst vor den Spieler, nimmt Schaden, schlägt zurück, wird beim Parieren offen für einen kritischen Treffer. |
@@ -386,10 +386,11 @@ die Spur verwischen. Der Schalter `SCHREIBEN` steht standardmäßig auf `false`.
 **Noch nicht ausgeführt:** in `bloecke.tres` steht bisher kein einziger
 `resource_name`, die Prüfung ist also noch nicht scharf.
 
-`waffen_erzeugen.gd` hat zwei Schalter, `SCHREIBEN` und `UEBERSCHREIBEN`.
-**Beide stehen derzeit auf `true`** – anders als der Kopfkommentar behauptet.
-Ein erneuter Lauf setzt jede im Inspektor nachjustierte Waffe auf die
-Tabellenwerte zurück. Die Meshes sind so gebaut, dass `character_visual.gd` für
+`waffen_erzeugen.gd` hat zwei Schalter: `SCHREIBEN` (`true`) und
+`UEBERSCHREIBEN` (`false`). Ein erneuter Lauf legt also nur an, was noch
+fehlt – neue Einträge in `_tabelle()` –, und lässt vorhandene, im Inspektor
+nachjustierte Waffen in Ruhe. Wer eine Waffe bewusst aus der Tabelle neu
+erzeugen will, löscht vorher ihre `.tres` und `.res`. Die Meshes sind so gebaut, dass `character_visual.gd` für
 Axt und Zweihänder eine Rollkorrektur braucht; die Kommentare dort sagen, wie
 die Quader stattdessen liegen müssten.
 

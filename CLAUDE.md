@@ -159,9 +159,6 @@ Dazu zwei Dinge, die kein Fallstrick sind, aber überraschen:
 - **Inventar und Ausrüstung sind nicht verbunden.** `inventar.gd` kennt
   `ItemDaten`, `ausruestung.gd` kennt `WaffenDaten`. Was der Spieler hält,
   kommt nur aus `start_ausruestung` in `spieler.tscn`.
-- **`werkzeuge/waffen_erzeugen.gd` steht auf `UEBERSCHREIBEN = true`.** Ein
-  Lauf setzt alle nachjustierten Waffen zurück. Nicht ausführen, ohne das
-  vorher zu prüfen.
 
 ---
 
@@ -185,13 +182,8 @@ Trainingspuppe, Karte, HUD, Inventar, `HUD ist mit dem Kampfsystem verbunden`,
 `[Deko] gesetzte Pflanzen: ~1650`. **Neun** Fehler
 `keyboard_get_keycode_from_physical: Not supported by this display server` sind
 erwartet und harmlos – der Dummy-Displayserver hat keine Tastatur, das
-Pausenmenü fragt beim Bau seiner Tastenzeilen danach.
-
-Dazu derzeit **zwei** Warnungen vom NPC, der noch keine `Ausruestung` hat:
-`CharacterVisual: keine Ausruestung gefunden` und
-`Combat: Keine Ausrüstung ('Ausruestung') gefunden`. Sie verschwinden, sobald
-`npc.tscn` einen `Ausruestung`-Knoten bekommt – dann diese Zeile hier streichen.
-Alles andere ist ein echter Fehler.
+Pausenmenü fragt beim Bau seiner Tastenzeilen danach. Alles andere ist ein
+echter Fehler – auch jede Warnung.
 
 Nach dem Verschieben von Dateien zusätzlich prüfen, dass jeder `res://`-Pfad
 noch auflöst und die UIDs zu den `.uid`-Dateien passen.
@@ -223,8 +215,8 @@ auf dem Zweig `umbau/struktur`, noch nicht auf `main`.
 
 Als Nächstes naheliegend:
 
-- `Ausruestung` in `npc.tscn` einhängen (NPC kämpft sonst mit Fäusten)
 - Inventar und Ausrüstung verbinden
+- dem NPC eine Waffe in `start_ausruestung` geben (bisher nur Faust)
 - weitere KI-Arten (neutral, passiv, freundlich) in `spiel/akteure/npc/ki/`
 
 Offene Restarbeit aus Etappe 02: `werkzeuge/bloecke_namen.gd` einmal mit

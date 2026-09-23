@@ -79,7 +79,7 @@ Player  (CharacterBody3D, collision_layer = 2)   player.gd  (extends Akteur)
 └─ Inventar                 inventar.gd
 ```
 
-### spiel/akteure/npc/npc.tscn — 29 Zeilen
+### spiel/akteure/npc/npc.tscn — 35 Zeilen
 
 Das Gegenstück zum Spieler. Dasselbe Rig, dieselbe Kampfkomponente, statt
 Kamera und Eingabe ein KI-Knoten.
@@ -90,12 +90,13 @@ Npc  (CharacterBody3D, collision_layer = 2)      npc.gd  (extends Akteur)
 ├─ Visual                   instanz von koerper.tscn, y = -0.85
 ├─ Combat                   combat.gd   von_spieler_gesteuert = false
 │                                       max_leben = 60, max_kombo = 1
+├─ Ausruestung              ausruestung.gd  -> faust_daten, start_ausruestung leer
 └─ Ki                       ki/feindlich.gd
 ```
 
-**Keine `Ausruestung`.** Der NPC kämpft deshalb mit den Faust-Rückfallwerten
-aus `combat.gd`, und beim Start stehen zwei Warnungen in der Ausgabe – siehe
-Abschnitt 11.
+Die `Ausruestung` trägt nur `faust_daten` – der NPC kämpft also mit bloßen
+Fäusten. Eine Waffe bekommt er über `start_ausruestung`, im Inspektor der
+Instanz oder direkt in `npc.tscn`.
 
 ### spiel/akteure/gemeinsam/koerper.tscn — 72 Zeilen
 
@@ -651,14 +652,6 @@ absichtlich nicht mehr an, sonst würden zwei Seiten daran ziehen.
 Kein Wunschzettel, sondern Dinge, die beim Weiterbauen konkret zubeißen.
 Sortiert nach Auswirkung.
 
-### waffen_erzeugen.gd überschreibt beim nächsten Lauf
-[werkzeuge/waffen_erzeugen.gd](../werkzeuge/waffen_erzeugen.gd) steht auf
-`SCHREIBEN := true` **und** `UEBERSCHREIBEN := true`. Der Kopfkommentar sagt
-dagegen, `UEBERSCHREIBEN` stehe auf `false`. Wer das Werkzeug noch einmal
-ausführt, setzt alle fünf Waffen und Meshes auf die Tabellenwerte zurück – im
-Inspektor Nachjustiertes ist dann weg. Nach dem Erzeugen beide Schalter auf
-`false` stellen.
-
 ### Inventar und Ausrüstung sind zwei getrennte Welten
 `inventar.gd` verwaltet `ItemDaten` in Slots mit Zeichenkettenschlüsseln
 (`haupthand`, `nebenhand`, …), `ausruestung.gd` verwaltet `WaffenDaten` in
@@ -668,20 +661,6 @@ Was der Spieler in der Hand hält, kommt allein aus `start_ausruestung` in
 `spieler.tscn`; ein Schwert, das man im Inventar in die Haupthand zieht,
 erscheint nicht in der Hand. Das ist die größte offene Lücke im
 Ausrüstungssystem.
-
-### Der NPC hat keine Ausrüstung
-`npc.tscn` hat keinen `Ausruestung`-Knoten. Folge: der NPC kämpft mit den
-Faust-Rückfallwerten aus `combat.gd`, hält keine Waffe, und jeder Start
-schreibt zwei Warnungen:
-
-```
-WARNING: CharacterVisual: keine Ausruestung gefunden – Waffenhaltung bleibt auf Faust.
-WARNING: Combat: Keine Ausrüstung ('Ausruestung') gefunden – Faust-Rückfallwerte aktiv.
-```
-
-Abhilfe: `Ausruestung` mit `faust_daten` (und gern einer Waffe in
-`start_ausruestung`) in `npc.tscn` einhängen – dann verschwinden beide
-Warnungen.
 
 ### Bewegungscode steht doppelt
 `npc.gd` enthält Stufensteigen (`_stufe_steigen`, `_stufe_pruefen`) und

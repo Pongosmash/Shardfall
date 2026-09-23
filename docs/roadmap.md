@@ -77,11 +77,11 @@ Erledigt:
 
 Nächste Schritte, grob nach Nutzen:
 
-1. **`Ausruestung` in `npc.tscn`** einhängen. Heute kämpft der NPC mit
-   Faust-Rückfallwerten, hält keine Waffe und erzeugt bei jedem Start zwei
-   Warnungen. Fünf Minuten im Editor.
-2. **Neutral und passiv** als weitere Skripte in `ki/`. Beide brauchen dasselbe
+1. **Neutral und passiv** als weitere Skripte in `ki/`. Beide brauchen dasselbe
    Signal "wurde angegriffen" – `Combat.getroffen` gibt es schon.
+2. **Dem NPC eine Waffe geben.** `npc.tscn` hat eine `Ausruestung`, aber nur
+   mit `faust_daten`. Eine Waffe in `start_ausruestung` reicht, Haltung und
+   Schlagpose kommen dann von selbst.
 3. **NPC-Vorlagen** als `daten/npcs/*.tres`: Leben, Tempo, Ausrüstung,
    Verhaltensart, Proportionen. Dann ist ein Ork eine Datei, keine Szene.
 4. **Bewegungscode teilen.** `npc.gd` hat Stufensteigen und Wassererkennung
@@ -189,7 +189,7 @@ mit dem NPC inzwischen sechs:
 | `szenen/main.tscn` | 30 | Wurzelknoten `Spiel`, instanziert nur noch |
 | `spiel/welt/welt.tscn` | 146 | Gelände, Licht, Himmel, Wolken, Wasser, Deko, Tageszeit |
 | `spiel/akteure/spieler/spieler.tscn` | 75 | Spieler mit Kamera und Komponenten |
-| `spiel/akteure/npc/npc.tscn` | 29 | NPC mit Kampf und KI – nach Etappe 02 dazugekommen |
+| `spiel/akteure/npc/npc.tscn` | 35 | NPC mit Kampf und KI – nach Etappe 02 dazugekommen |
 | `spiel/akteure/gemeinsam/koerper.tscn` | 72 | **Das Rig – für Spieler und NPC dieselbe Datei** |
 | `spiel/ui/ui.tscn` | 20 | Die vier Oberflächen |
 
@@ -276,9 +276,6 @@ Etappe 02 klein bleibt – jetzt kann sie fallen.
 
 ## Kleinkram, der zwischendurch mitgeht
 
-- **Schalter in `waffen_erzeugen.gd` zurückstellen.** `SCHREIBEN` und
-  `UEBERSCHREIBEN` stehen beide auf `true`, der Kopfkommentar sagt `false`.
-  Ein versehentlicher Lauf würde alle nachjustierten Waffen zurücksetzen.
 - **Debug-Ausgaben entfernen.** `inventar_ui.gd` hat zwei `print`-Aufrufe aus
   der Fehlersuche zu Etappe 02, die bei jedem Start feuern.
 - **Toten Verweis in `tageszeit.gd` reparieren.** Der Kommentar in Zeile 118

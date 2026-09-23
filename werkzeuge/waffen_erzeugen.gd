@@ -28,7 +28,7 @@ extends EditorScript
 
 
 const SCHREIBEN := true
-const UEBERSCHREIBEN := true
+const UEBERSCHREIBEN := false
 
 const MESH_DIR := "res://assets/meshes/waffen/"
 const MAT_PFAD := "res://assets/materials/waffen_material.tres"
